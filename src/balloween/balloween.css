@@ -1,0 +1,17 @@
+/* Tailwind utilities for the Balloween app only. The rest of the site never loaded Tailwind, so we skip
+   its global preflight and apply a small reset scoped to the .bw wrapper instead. */
+@tailwind components;
+@tailwind utilities;
+
+.bw, .bw *, .bw *::before, .bw *::after { box-sizing: border-box; border-width: 0; border-style: solid; border-color: rgba(255, 255, 255, 0.1); }
+.bw h1, .bw h2, .bw h3, .bw p, .bw ul { margin: 0; }
+.bw a { color: inherit; text-decoration: none; }
+.bw button, .bw input, .bw select, .bw textarea { font: inherit; color: inherit; margin: 0; }
+.bw button { background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.bw button:disabled { cursor: default; }
+.bw input::placeholder, .bw textarea::placeholder { color: rgba(255, 255, 255, 0.4); }
+.bw input[type="number"]::-webkit-inner-spin-button, .bw input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.bw input[type="number"] { -moz-appearance: textfield; }
+.bw table { border-collapse: collapse; }
+.bw summary { list-style: none; } .bw summary::-webkit-details-marker { display: none; }
+.bw ::selection { background: #ff8a2a; color: #1a0d05; }
