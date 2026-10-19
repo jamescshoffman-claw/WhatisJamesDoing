@@ -4,6 +4,7 @@ import {
 } from './logic'
 import { ADMIN_PASSWORD, FORMATS, phaseOf } from './store'
 import { BracketList, Button, Card, FormatToggle, H, MatchRow, Msg, Pill, ScoreSheet, cx, nameOf, useBw } from './ui'
+import { BracketDiagram } from './Bracket'
 
 type Tab = 'teams' | 'games' | 'playoffs' | 'danger' | 'sim'
 const PHASE_LABEL = { setup: 'Setup', pools: 'Pool play', preview: 'Bracket preview', playoffs: 'Playoffs live' }
@@ -169,6 +170,7 @@ function PlayoffsTab({ format }: { format: Format }) {
   const { data } = useBw()
   const { busy, err, ok, run } = useRun()
   const [open, setOpen] = useState<Match | null>(null)
+  const [view, setView] = useState<'diagram' | 'list'>('diagram')
   const phase = phaseOf(data.states, format)
   const teams = data.teams.filter(x => x.format === format)
   const matches = data.matches.filter(m => m.format === format)
@@ -217,7 +219,15 @@ function PlayoffsTab({ format }: { format: Format }) {
           </div>
         </div>
       )}
-      {(phase === 'preview' || phase === 'playoffs') && <div><H sub="Tap a game to enter or fix a result. Fixing an earlier result reopens everything after it.">Bracket</H><BracketList matches={matches} teams={teams} format={format} onTap={m => (m.team_a && m.team_b ? setOpen(m) : undefined)} /></div>}
+      {(phase === 'preview' || phase === 'playoffs') && (
+        <div>
+          <div className="mb-2 flex items-center justify-between"><H sub="Tap a game to enter or fix a result. Fixing an earlier result reopens everything after it.">Bracket</H>
+            <Button kind="ghost" className="px-3 py-1.5 text-xs" onClick={() => setView(v => (v === 'diagram' ? 'list' : 'diagram'))}>{view === 'diagram' ? 'List view' : 'Bracket view'}</Button></div>
+          {view === 'diagram'
+            ? <BracketDiagram matches={matches} teams={teams} format={format} onTap={m => setOpen(m)} />
+            : <BracketList matches={matches} teams={teams} format={format} onTap={m => (m.team_a && m.team_b ? setOpen(m) : undefined)} />}
+        </div>
+      )}
       {open && <ScoreSheet match={open} teams={teams} onClose={() => setOpen(null)} onSave={s => data.actions.saveScore(open, s)} onClear={() => data.actions.clearScore(open)} canClear />}
     </div>
   )
