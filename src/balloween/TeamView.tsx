@@ -41,7 +41,7 @@ export default function TeamView() {
     const left = myPool.filter(m => !m.winner).length
     body = (
       <div className="space-y-4">
-        <NetSign net={team.pool ? poolNet(team.format, team.pool) : null} />
+        <NetSign net={team.pool ? poolNet(team.format, team.pool) : null} label={`${FORMAT_LABEL[team.format]} · go to net`} />
         {phase === 'preview' && <Msg tone="ok">Pool play is done. The playoff bracket is being set up, hang tight.</Msg>}
         {left === 0 && phase === 'pools' && <Msg tone="ok">All your pool games are in. Wait for the playoff bracket.</Msg>}
         <div>
@@ -65,7 +65,7 @@ export default function TeamView() {
       const opp = nameOf(data.teams, cur.team_a === team.id ? cur.team_b : cur.team_a)
       top = (
         <div className="space-y-3">
-          {cur.net ? <NetSign net={cur.net} /> : <NetSign net="⏳" label="Waiting for a net to open" />}
+          {cur.net ? <NetSign net={cur.net} label={`${FORMAT_LABEL[team.format]} · go to net`} /> : <NetSign net="⏳" label="Waiting for a net to open" sub={FORMAT_LABEL[team.format]} />}
           <Card tone="live">
             <div className="text-xs font-black uppercase tracking-widest text-[#ffb270]">{roundLabelFor(cur, data.teams)}{losses === 1 ? ' · elimination game' : ''}</div>
             <div className="text-2xl font-black">Play {opp}</div>

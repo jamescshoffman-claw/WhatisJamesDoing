@@ -49,8 +49,9 @@ export const NET_PREFIX: Record<Format, string> = { men: 'M', women: 'W' }
 export const NETS_PER_FORMAT = 4
 export const POOL_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F']
 
-export function netsFor(format: Format): string[] {
-  return Array.from({ length: NETS_PER_FORMAT }, (_, i) => `${NET_PREFIX[format]}${i + 1}`)
+/** Nets are lettered to match the pools: pool A plays on net A. Each format has its own A-D. */
+export function netsFor(_format: Format): string[] {
+  return POOL_LETTERS.slice(0, NETS_PER_FORMAT)
 }
 
 export function teamName(p1: string, p2: string): string {
@@ -112,8 +113,8 @@ export function assignPools(teams: Team[], rand: () => number = Math.random): Re
   return out
 }
 
-export function poolNet(format: Format, pool: string): string {
-  return `${NET_PREFIX[format]}${POOL_LETTERS.indexOf(pool) + 1}`
+export function poolNet(_format: Format, pool: string): string {
+  return pool
 }
 
 /** Round-robin pairings in an order that spreads each team's games out (circle method). */

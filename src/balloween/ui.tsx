@@ -82,12 +82,13 @@ export function FormatToggle({ value, onChange, phases }: { value: Format; onCha
   )
 }
 
-/** The big "go here" sign. */
-export function NetSign({ net, label }: { net: string | null; label?: string }) {
+/** The big "go here" sign: orange on black so it reads from across the gym. */
+export function NetSign({ net, label, sub }: { net: string | null; label?: string; sub?: string }) {
   return (
-    <div className="rounded-3xl border-4 border-[#ff8a2a] bg-gradient-to-br from-[#ff8a2a] to-[#ff5e1a] px-4 py-5 text-center text-[#1a0d05] shadow-[0_0_40px_rgba(255,138,42,0.35)]">
-      <div className="text-xs font-black uppercase tracking-[0.3em]">{label ?? 'Go to net'}</div>
-      <div className="mt-1 text-6xl font-black leading-none">{net ?? '—'}</div>
+    <div className="rounded-3xl border-4 border-[#ff8a2a] bg-[#07030c] px-4 py-5 text-center text-[#ff8a2a] shadow-[0_0_40px_rgba(255,138,42,0.35)]">
+      <div className="text-xs font-black uppercase tracking-[0.3em] text-[#ffb270]">{label ?? 'Go to net'}</div>
+      <div className="mt-1 text-7xl font-black leading-none drop-shadow-[0_0_18px_rgba(255,138,42,0.7)]">{net ?? '—'}</div>
+      {sub && <div className="mt-2 text-sm font-bold uppercase tracking-widest text-[#ffb270]/80">{sub}</div>}
     </div>
   )
 }
