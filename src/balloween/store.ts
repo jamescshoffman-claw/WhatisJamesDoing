@@ -53,7 +53,7 @@ export class Actions {
   async addTeams(rows: ParsedTeam[]) {
     if (!rows.length) return
     const { error } = await sb.from('bw_teams').insert(rows.map(r => ({
-      t: this.t, format: r.format, player1: r.player1.trim(), player2: r.player2.trim(), name: teamName(r.player1, r.player2),
+      t: this.t, format: r.format, player1: r.player1.trim(), player2: r.player2.trim(), name: (r.name || '').trim() || teamName(r.player1, r.player2),
     })))
     throwIf(error)
     await this.refresh()

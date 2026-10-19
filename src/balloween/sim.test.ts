@@ -92,6 +92,10 @@ assert(JSON.stringify(seedOrder(8)) === '[1,8,4,5,2,7,3,6]', 'seed order')
 assert(roundRobin(['a', 'b', 'c', 'd']).length === 6 && roundRobin(['a', 'b', 'c']).length === 3, 'round robin')
 const csv = parseTeamsCsv('Player 1,Player 2,Format\nAnn Lee,Bo Kim,Men\n"Cy Ng", Di Wu, women\nbad line')
 assert(csv.teams.length === 2 && csv.errors.length === 1 && csv.teams[1].format === 'women', 'csv parse')
+const sheet = parseTeamsCsv('Timestamp\tTeam Name\tPlayer 1 Name\tPlayer 2 Name\tFormat?\tPaid\n9/25\tPigs CAN Fly\tLucas Palmer\tAriel Zhang\tCoed\tYes\n9/17\tTBD\tSamuel Zhang\tFred Li\tMens\tYes\n9/17\tHwaboon\tTC Qin\tJana Tse\tRevco\tYes')
+assert(sheet.errors.length === 0 && sheet.teams.length === 3 && sheet.teams[0].format === 'men' && sheet.teams[0].name === 'Pigs CAN Fly' && !sheet.teams[1].name && sheet.teams[2].format === 'women', 'sheet parse')
+const padded = sampleTeams()
+assert(padded.filter(t => t.format === 'men').length === 16 && padded.filter(t => t.format === 'women').length === 16, 'padded roster')
 for (let i = 0; i < 5; i++) { runFormat('men', 12); runFormat('women', 16) }
 // Both formats in one table at once: men's seeds must never resolve to women's teams (the bug found on the live site).
 {

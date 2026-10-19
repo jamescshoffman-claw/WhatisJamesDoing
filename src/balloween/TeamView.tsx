@@ -27,7 +27,7 @@ export default function TeamView() {
   const header = (
     <div className="mb-4 flex items-start justify-between gap-3">
       <div>
-        <div className="mb-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-black uppercase tracking-widest text-white" style={{ background: FORMAT_COLOR[team.format].fill }}>{FORMAT_COLOR[team.format].emoji} {FORMAT_LABEL[team.format]}{team.pool ? ` · Pool ${team.pool}` : ''}{team.seed ? ` · Seed ${team.seed}` : ''}</div>
+        <div className="mb-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-black uppercase tracking-widest text-white" style={{ background: FORMAT_COLOR[team.format].fill }}>{FORMAT_LABEL[team.format]}{team.pool ? ` · Pool ${team.pool}` : ''}{team.seed ? ` · Seed ${team.seed}` : ''}</div>
         <div className="text-2xl font-black leading-tight">{team.name}</div>
         <div className="text-sm text-white/60">{team.player1} &amp; {team.player2}</div>
       </div>

@@ -419,18 +419,42 @@ export function describeSrc(src: Src | null, matches: Match[], teams: Team[]): s
 
 // ---------------------------------------------------------------- CSV
 
-export interface ParsedTeam { player1: string; player2: string; format: Format }
+export interface ParsedTeam { player1: string; player2: string; format: Format; name?: string }
 
+export function formatFromText(f: string): Format | null {
+  const x = (f || '').trim().toLowerCase()
+  if (/^(men|mens|men's|male|m|coed|co-ed)$/.test(x)) return 'men'          // coed plays on the men's-height net
+  if (/^(women|womens|women's|female|w|f|revco|reverse coed|reverse co-ed|rev)$/.test(x)) return 'women'
+  if (/^m/.test(x) || /coed/.test(x)) return 'men'
+  if (/^w|^f|rev/.test(x)) return 'women'
+  return null
+}
+
+/**
+ * Accepts either "Player 1, Player 2, Format[, Team name]" or a pasted sign-up sheet whose header row names
+ * the columns (e.g. "Team Name", "Player 1 Name", "Player 2 Name", "Format?"). Tabs or commas.
+ */
 export function parseTeamsCsv(text: string): { teams: ParsedTeam[]; errors: string[] } {
   const teams: ParsedTeam[] = [], errors: string[] = []
-  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
-  lines.forEach((line, i) => {
-    const cells = line.split(/\t|,/).map(c => c.trim().replace(/^"|"$/g, ''))
-    if (i === 0 && /player/i.test(cells[0] || '')) return
-    const [p1, p2, f] = cells
-    const fmt = /^m/i.test(f || '') ? 'men' : /^w|^f/i.test(f || '') ? 'women' : null
-    if (!p1 || !p2 || !fmt) { errors.push(`Line ${i + 1}: expected "Player 1, Player 2, Men/Women" but got "${line}"`); return }
-    teams.push({ player1: p1, player2: p2, format: fmt })
-  })
+  const lines = text.split(/\r?\n/).map(l => l.replace(/\s+$/, '')).filter(l => l.trim())
+  if (!lines.length) return { teams, errors }
+  const split = (l: string) => (l.includes('\t') ? l.split('\t') : l.split(',')).map(c => c.trim().replace(/^"|"$/g, '').trim())
+  let cols = { p1: 0, p2: 1, fmt: 2, name: 3 }
+  let start = 0
+  const head = split(lines[0]).map(c => c.toLowerCase())
+  if (head.some(c => /player/.test(c))) {
+    const find = (re: RegExp) => head.findIndex(c => re.test(c))
+    cols = { p1: find(/player\s*1|player1|^p1/), p2: find(/player\s*2|player2|^p2/), fmt: find(/format|division|bracket|net/), name: find(/team/) }
+    if (cols.p1 < 0 || cols.p2 < 0 || cols.fmt < 0) errors.push('Header found but could not find Player 1, Player 2 and Format columns.')
+    start = 1
+  }
+  for (let i = start; i < lines.length; i++) {
+    const cells = split(lines[i])
+    const p1 = cells[cols.p1] || '', p2 = cells[cols.p2] || '', fmt = formatFromText(cells[cols.fmt] || '')
+    const rawName = cols.name >= 0 ? (cells[cols.name] || '') : ''
+    const name = /^tbd$/i.test(rawName.trim()) ? '' : rawName.trim()
+    if (!p1 || !p2 || !fmt) { errors.push(`Line ${i + 1}: expected Player 1, Player 2 and a format (Mens / Womens / Coed / Revco) but got "${lines[i].trim()}"`); continue }
+    teams.push({ player1: p1, player2: p2, format: fmt, ...(name ? { name } : {}) })
+  }
   return { teams, errors }
 }

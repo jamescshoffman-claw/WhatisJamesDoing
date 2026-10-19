@@ -82,7 +82,7 @@ function TeamsTab({ format }: { format: Format }) {
   return (
     <div className="space-y-4">
       <Card>
-        <H sub="One team per line: Player 1, Player 2, Men or Women. Paste from a spreadsheet or pick a CSV file.">Upload teams</H>
+        <H sub="Paste straight from the sign-up sheet (with its header row), or one team per line: Player 1, Player 2, Format, Team name. Mens and Coed go to the men's net; Womens and Revco to the women's net.">Upload teams</H>
         <textarea value={text} onChange={e => setText(e.target.value)} rows={5} placeholder={'Ann Lee, Bo Kim, Men\nCy Ng, Di Wu, Women'}
           className="w-full rounded-xl border border-white/15 bg-[#120a1c] px-3 py-2 font-mono text-sm text-white outline-none focus:border-[#ff8a2a]" />
         <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -279,7 +279,7 @@ function SimTab() {
       <Card>
         <H sub="Walk a fake tournament through every stage. Open /Balloween/Test on another phone as a player to watch it update.">Simulation</H>
         <div className="space-y-2">
-          <B id="sample" kind="primary" label="1. Load sample teams (12 men, 16 women)" fn={() => a.loadSample()} />
+          <B id="sample" kind="primary" label="1. Load sign-ups + sample players (16 per net)" fn={() => a.loadSample()} />
           <B id="pools" label="2. Draw pools (both formats)" fn={() => each(f => a.generatePools(f))} />
           <B id="round" label="3. Play one game per net" fn={() => each(f => a.playRound(f))} />
           <B id="finishpools" label="3b. Finish all pool games" fn={() => each(f => a.finishPools(f))} />

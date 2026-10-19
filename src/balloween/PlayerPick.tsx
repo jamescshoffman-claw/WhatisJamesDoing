@@ -38,7 +38,7 @@ export default function PlayerPick() {
               {on && <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#1a0d05] text-sm font-black text-[#ff8a2a]">✓</span>}
               <div className="truncate pr-6 text-base font-extrabold leading-tight">{p.name}</div>
               <div className={cx('truncate text-xs', on ? 'text-[#1a0d05]/80' : 'text-white/50')}>
-                <span className="mr-1">{FORMAT_COLOR[p.format].emoji}</span>w/ {p.partner.split(' ')[0]}
+<span className="mr-1.5 inline-block h-2 w-2 rounded-full align-middle" style={{ background: FORMAT_COLOR[p.format].fill }} />w/ {p.partner.split(' ')[0]}
               </div>
             </button>
           )

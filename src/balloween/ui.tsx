@@ -55,8 +55,8 @@ export function Msg({ children, tone = 'muted' }: { children: ReactNode; tone?: 
 
 /** Per-format colors so it is always obvious which net you are looking at: men's = blue, women's = pink. */
 export const FORMAT_COLOR: Record<Format, { fill: string; text: string; soft: string; ring: string; emoji: string }> = {
-  men: { fill: '#2563eb', text: '#bfdbfe', soft: 'rgba(37,99,235,0.18)', ring: '#3b82f6', emoji: '🔵' },
-  women: { fill: '#db2777', text: '#fbcfe8', soft: 'rgba(219,39,119,0.18)', ring: '#ec4899', emoji: '🩷' },
+  men: { fill: '#2563eb', text: '#bfdbfe', soft: 'rgba(37,99,235,0.18)', ring: '#3b82f6', emoji: '' },
+  women: { fill: '#db2777', text: '#fbcfe8', soft: 'rgba(219,39,119,0.18)', ring: '#ec4899', emoji: '' },
 }
 
 export function FormatToggle({ value, onChange, phases }: { value: Format; onChange: (f: Format) => void; phases?: Partial<Record<Format, string>> }) {
@@ -69,7 +69,7 @@ export function FormatToggle({ value, onChange, phases }: { value: Format; onCha
             <button key={f} type="button" onClick={() => onChange(f)} aria-pressed={on}
               className={cx('rounded-2xl border-2 px-3 py-3 text-sm font-black transition active:scale-[0.98]', on ? 'text-white shadow-lg' : 'text-white/60')}
               style={on ? { background: c.fill, borderColor: c.ring, boxShadow: `0 0 24px ${c.soft}, 0 6px 0 rgba(0,0,0,0.35)` } : { background: 'rgba(255,255,255,0.03)', borderColor: c.soft }}>
-              <span className="mr-1">{c.emoji}</span>{FORMAT_LABEL[f]}
+              {FORMAT_LABEL[f]}
               {phases?.[f] && <span className={cx('block text-[10px] font-bold uppercase tracking-wider', on ? 'text-white/90' : 'text-white/40')}>{phases[f]}</span>}
             </button>
           )
