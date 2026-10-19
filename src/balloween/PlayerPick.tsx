@@ -19,7 +19,7 @@ export default function PlayerPick() {
     }
     return out.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
   }, [data.teams])
-  const shown = players.filter(p => !q || p.name.toLowerCase().includes(q.toLowerCase()) || p.partner.toLowerCase().includes(q.toLowerCase()))
+  const shown = players.filter(p => !q || p.name.toLowerCase().includes(q.trim().toLowerCase()))
   const isPicked = (p: Entry) => picked?.teamId === p.teamId && picked.name === p.name
   const confirm = () => { if (!picked) return; saveMe(t, { teamId: picked.teamId, player: picked.name }); nav(`${base}/me`) }
   return (
