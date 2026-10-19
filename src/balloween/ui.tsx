@@ -176,12 +176,16 @@ export function MatchRow({ m, teams, me, onTap, showNet = true }: { m: Match; te
   const won = mine && m.winner === me, lost = mine && m.winner && m.winner !== me
   const tone = won ? 'win' : lost ? 'loss' : undefined
   const perspectiveA = !me || m.team_a === me
+  const oppTeam = mine ? teamById(teams, m.team_a === me ? m.team_b : m.team_a) : null
   const opp = mine ? (m.team_a === me ? b : a) : null
   const body = (
     <Card tone={tone} className={cx('flex items-center gap-3', onTap && 'cursor-pointer active:scale-[0.99]')}>
       <div className="min-w-0 flex-1">
         {mine ? (
-          <div className="truncate text-base font-extrabold">{opp}</div>
+          <>
+            <div className="truncate text-base font-extrabold">{opp}</div>
+            {oppTeam && <div className="truncate text-sm text-white">{oppTeam.player1} &amp; {oppTeam.player2}</div>}
+          </>
         ) : (
           <div className="truncate text-base font-bold">{a} <span className="text-white/40">vs</span> {b}</div>
         )}

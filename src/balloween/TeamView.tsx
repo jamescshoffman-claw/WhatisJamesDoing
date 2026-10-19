@@ -63,13 +63,15 @@ export default function TeamView() {
       top = <Card tone="loss"><div className="text-lg font-extrabold">You're out of the bracket</div><div className="text-sm text-white/80">{losses >= 2 ? 'Two losses in the playoffs.' : 'The bracket is finished.'}{lastLoss ? ` Last game: ${roundLabelFor(lastLoss, data.teams)}.` : ''} Thanks for playing! 🎃</div></Card>
     } else if (!cur) top = <Card tone="purple"><div className="text-lg font-extrabold">Waiting on the bracket</div><div className="text-sm text-white/70">Your next game will show up here.</div></Card>
     else if (cur.team_a && cur.team_b) {
-      const opp = nameOf(data.teams, cur.team_a === team.id ? cur.team_b : cur.team_a)
+      const oppTeam = data.teams.find(x => x.id === (cur.team_a === team.id ? cur.team_b : cur.team_a))
+      const opp = oppTeam?.name ?? 'TBD'
       top = (
         <div className="space-y-3">
           {cur.net ? <NetSign net={cur.net} label={`${FORMAT_LABEL[team.format]} · go to net`} /> : <NetSign net="⏳" label="Waiting for a net to open" sub={FORMAT_LABEL[team.format]} />}
           <Card tone="live">
             <div className="text-xs font-black uppercase tracking-widest text-[#ffb270]">{roundLabelFor(cur, data.teams)}{losses === 1 ? ' · elimination game' : ''}</div>
             <div className="text-2xl font-black">Play {opp}</div>
+            {oppTeam && <div className="text-base font-semibold text-white">{oppTeam.player1} &amp; {oppTeam.player2}</div>}
             <div className="text-sm text-white/70">{rulesFor(cur).label}.{cur.net ? '' : ' Nets are full right now; this page will show your net as soon as one frees up.'}</div>
             <Button className="mt-3 w-full" onClick={() => setOpen(cur)}>Enter score</Button>
           </Card>
