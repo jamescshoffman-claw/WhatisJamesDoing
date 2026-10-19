@@ -1,5 +1,6 @@
 // A drawn double-elimination bracket: winners bracket on top, losers bracket below, grand final at the right.
 // Positions are computed from round/slot so connector lines can be drawn with plain SVG. Scrolls sideways on phones.
+import { useEffect, useRef } from 'react'
 import { bracketSize, roundLabel, setsSummary, type Format, type Match, type Team } from './logic'
 import { cx, nameOf } from './ui'
 
@@ -51,8 +52,16 @@ export function BracketDiagram({ matches, teams, format, me, onTap }: { matches:
   }
   const col = (c: number) => PAD + c * (W + GAP)
   const seedOf = (id: string | null) => teams.find(t => t.id === id)?.seed
+  // Scroll the player's next (or last) game into view so they land on "where am I" without hunting.
+  const scroller = useRef<HTMLDivElement>(null)
+  const focusKey = me ? (boxes.find(b => (b.m.team_a === me || b.m.team_b === me) && !b.m.winner && !b.m.void) ?? [...boxes].reverse().find(b => b.m.team_a === me || b.m.team_b === me))?.m.key : undefined
+  useEffect(() => {
+    const el = scroller.current, b = boxes.find(x => x.m.key === focusKey)
+    if (el && b) el.scrollTo({ left: Math.max(0, b.x - 24), top: Math.max(0, b.y - 60), behavior: 'smooth' })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusKey])
   return (
-    <div className="overflow-x-auto rounded-2xl border border-white/10 bg-[#150c22]" style={{ WebkitOverflowScrolling: 'touch' }}>
+    <div ref={scroller} className="max-h-[70vh] overflow-auto rounded-2xl border border-white/10 bg-[#150c22]" style={{ WebkitOverflowScrolling: 'touch' }}>
       <div className="relative" style={{ width, height }}>
         <svg className="absolute inset-0" width={width} height={height} aria-hidden>
           {lines.map((d, i) => <path key={i} d={d} fill="none" stroke="rgba(196,181,253,0.45)" strokeWidth={2} />)}

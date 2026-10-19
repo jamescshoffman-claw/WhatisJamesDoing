@@ -5,6 +5,7 @@ import {
 } from './logic'
 import { loadMe, phaseOf, saveMe } from './store'
 import { Button, Card, FORMAT_COLOR, H, MatchRow, Msg, NetSign, Pill, PoolTable, ScoreSheet, nameOf, roundLabelFor, useBw } from './ui'
+import { BracketDiagram } from './Bracket'
 
 export default function TeamView() {
   const { base, t, data } = useBw()
@@ -88,10 +89,14 @@ export default function TeamView() {
       <div className="space-y-4">
         {top}
         <div className="flex gap-2"><Pill tone={losses === 0 ? 'green' : 'orange'}>{losses === 0 ? 'Winners bracket' : 'Losers bracket'}</Pill><Pill>{losses} {losses === 1 ? 'loss' : 'losses'}</Pill></div>
+        <div>
+          <H sub="You're outlined in purple. Swipe to see every round.">The bracket</H>
+          <BracketDiagram matches={data.matches} teams={data.teams} format={team.format} me={team.id} />
+        </div>
         {myPlayoff.length > 0 && <div><H>Your playoff games</H><div className="space-y-2">{myPlayoff.map(m => <MatchRow key={m.id} m={m} teams={data.teams} me={team.id} onTap={m.winner ? undefined : setOpen} />)}</div></div>}
         <details className="rounded-2xl border border-white/10 bg-white/5 p-3"><summary className="cursor-pointer font-bold">Pool results</summary>
           <div className="mt-3 space-y-2">{myPool.map(m => <MatchRow key={m.id} m={m} teams={data.teams} me={team.id} showNet={false} />)}</div></details>
-        <Button to={`${base}/standings`} kind="ghost" className="w-full">See the full bracket</Button>
+        <Button to={`${base}/standings`} kind="ghost" className="w-full">Standings for both nets</Button>
       </div>
     )
   }
