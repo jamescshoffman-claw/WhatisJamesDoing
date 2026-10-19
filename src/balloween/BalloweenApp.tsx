@@ -9,6 +9,12 @@ import Standings from './Standings'
 import Admin from './Admin'
 import './balloween.css'
 
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => { window.scrollTo({ top: 0 }) }, [pathname])
+  return null
+}
+
 export default function Balloween({ t }: { t: TKey }) {
   const data = useTournament(t)
   const [admin, setAdminState] = useState(isAdmin())
@@ -18,6 +24,7 @@ export default function Balloween({ t }: { t: TKey }) {
   return (
     <BwContext.Provider value={ctx}>
       <div className="bw min-h-screen bg-[#120a1c] text-[#f5efe6] antialiased" style={{ fontFamily: 'var(--font-sans)' }}>
+        <ScrollToTop />
         <header className="sticky top-0 z-40 border-b border-white/10 bg-[#120a1c]/90 backdrop-blur">
           <div className="mx-auto flex max-w-md items-center justify-between px-4 py-3">
             <Link to={base} className="text-xl font-black tracking-tight"><span className="mr-1">🎃</span>Balloween</Link>
