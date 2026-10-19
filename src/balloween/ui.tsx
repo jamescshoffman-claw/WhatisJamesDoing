@@ -180,7 +180,7 @@ export function MatchRow({ m, teams, me, onTap, showNet = true }: { m: Match; te
     <Card tone={tone} className={cx('flex items-center gap-3', onTap && 'cursor-pointer active:scale-[0.99]')}>
       <div className="min-w-0 flex-1">
         {mine ? (
-          <div className="truncate text-base font-extrabold">vs {opp}</div>
+          <div className="truncate text-base font-extrabold">{opp}</div>
         ) : (
           <div className="truncate text-base font-bold">{a} <span className="text-white/40">vs</span> {b}</div>
         )}
