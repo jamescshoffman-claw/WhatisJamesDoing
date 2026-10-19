@@ -127,6 +127,7 @@ export function ScoreSheet({ match, teams, onClose, onSave, onClear, canClear }:
       <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#1e1230] p-5 shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="mb-1 text-xs font-bold uppercase tracking-widest text-[#ffb270]">{roundLabelFor(match, teams)}</div>
         <div className="text-lg font-extrabold">{a} <span className="text-white/40">vs</span> {b}</div>
+        <div className="text-sm text-white">{teamById(teams, match.team_a) ? `${teamById(teams, match.team_a)!.player1} & ${teamById(teams, match.team_a)!.player2}` : ''} <span className="text-white/40">vs</span> {teamById(teams, match.team_b) ? `${teamById(teams, match.team_b)!.player1} & ${teamById(teams, match.team_b)!.player2}` : ''}</div>
         <div className="mb-4 text-sm text-white/60">{rules.label}</div>
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
           <div className="truncate text-center text-sm font-bold">{a}</div><div /><div className="truncate text-center text-sm font-bold">{b}</div>
@@ -176,7 +177,8 @@ export function MatchRow({ m, teams, me, onTap, showNet = true }: { m: Match; te
   const won = mine && m.winner === me, lost = mine && m.winner && m.winner !== me
   const tone = won ? 'win' : lost ? 'loss' : undefined
   const perspectiveA = !me || m.team_a === me
-  const oppTeam = mine ? teamById(teams, m.team_a === me ? m.team_b : m.team_a) : null
+  const teamA = teamById(teams, m.team_a), teamB = teamById(teams, m.team_b)
+  const oppTeam = mine ? (m.team_a === me ? teamB : teamA) : null
   const opp = mine ? (m.team_a === me ? b : a) : null
   const body = (
     <Card tone={tone} className={cx('flex items-center gap-3', onTap && 'cursor-pointer active:scale-[0.99]')}>
@@ -187,7 +189,14 @@ export function MatchRow({ m, teams, me, onTap, showNet = true }: { m: Match; te
             {oppTeam && <div className="truncate text-sm text-white">{oppTeam.player1} &amp; {oppTeam.player2}</div>}
           </>
         ) : (
-          <div className="truncate text-base font-bold">{a} <span className="text-white/40">vs</span> {b}</div>
+          <>
+            <div className="truncate text-base font-bold">{a} <span className="text-white/40">vs</span> {b}</div>
+            {(teamA || teamB) && (
+              <div className="truncate text-sm text-white">
+                {teamA ? `${teamA.player1} & ${teamA.player2}` : 'TBD'} <span className="text-white/40">vs</span> {teamB ? `${teamB.player1} & ${teamB.player2}` : 'TBD'}
+              </div>
+            )}
+          </>
         )}
         <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-white/60">
           {m.stage !== 'pool' && <span>{roundLabelFor(m, teams)}</span>}
