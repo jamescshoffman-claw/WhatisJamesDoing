@@ -293,7 +293,7 @@ export type MatchPatch = Partial<Pick<Match, 'team_a' | 'team_b' | 'winner' | 'v
  */
 export function reconcile(matches: Match[], teams: Team[], format: Format, now: string = new Date().toISOString()): Record<string, MatchPatch> {
   const bySeed = new Map<number, string>()
-  for (const tm of teams) if (tm.seed) bySeed.set(tm.seed, tm.id)
+  for (const tm of teams) if (tm.seed && tm.format === format) bySeed.set(tm.seed, tm.id)  // seeds are per format
   const ms = matches.filter(m => m.format === format && m.stage !== 'pool').map(m => ({ ...m }))
   const byKey = new Map(ms.map(m => [m.key, m]))
   const patches: Record<string, MatchPatch> = {}

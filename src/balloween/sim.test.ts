@@ -93,5 +93,18 @@ assert(roundRobin(['a', 'b', 'c', 'd']).length === 6 && roundRobin(['a', 'b', 'c
 const csv = parseTeamsCsv('Player 1,Player 2,Format\nAnn Lee,Bo Kim,Men\n"Cy Ng", Di Wu, women\nbad line')
 assert(csv.teams.length === 2 && csv.errors.length === 1 && csv.teams[1].format === 'women', 'csv parse')
 for (let i = 0; i < 5; i++) { runFormat('men', 12); runFormat('women', 16) }
+// Both formats in one table at once: men's seeds must never resolve to women's teams (the bug found on the live site).
+{
+  const mk = (format: Format, n: number) => Array.from({ length: n }, (_, k) => ({ id: uid(), t: 'test', format, player1: `p${k}`, player2: `q${k}`, name: `${format}${k}`, pool: 'A', seed: k + 1 }) as Team)
+  const teams = [...mk('men', 12), ...mk('women', 16)]
+  const matches: Match[] = [...buildBracket('test', 'men', 12), ...buildBracket('test', 'women', 16)].map(m => ({ ...m, id: uid() }))
+  const after = applyPatches(matches, reconcile(matches, teams, 'men'))
+  const menIds = new Set(teams.filter(t => t.format === 'men').map(t => t.id))
+  for (const m of after.filter(m => m.format === 'men' && m.stage === 'wb' && m.round === 1)) {
+    assert((!m.team_a || menIds.has(m.team_a)) && (!m.team_b || menIds.has(m.team_b)), 'men bracket must only contain men teams')
+  }
+  assert(after.filter(m => m.format === 'men' && m.stage === 'wb' && m.round === 1 && m.winner && !m.sets.length).length === 4, 'mixed-format byes')
+  console.log('mixed-format seeding ok')
+}
 runFormat('men', 13); runFormat('men', 8); runFormat('women', 5)
 console.log('ALL SIMULATIONS PASSED')
