@@ -27,7 +27,7 @@ export default function Balloween({ t }: { t: TKey }) {
         <ScrollToTop />
         <header className="sticky top-0 z-40 border-b border-white/10 bg-[#120a1c]/90 backdrop-blur">
           <div className="mx-auto flex max-w-md items-center justify-between px-4 py-3">
-            <Link to={base} className="text-xl font-black tracking-tight"><span className="mr-1">🎃</span>Balloween</Link>
+            <Link to={`${base}?menu=1`} className="text-xl font-black tracking-tight"><span className="mr-1">🎃</span>Balloween</Link>
             <div className="flex items-center gap-2">
               {t === 'test' && <Pill tone="orange">Test mode</Pill>}
               {admin && <Pill tone="purple">Admin</Pill>}
@@ -55,8 +55,11 @@ export default function Balloween({ t }: { t: TKey }) {
 
 function Landing() {
   const { base, t, data } = useBw()
+  const { search } = useLocation()
   const me = loadMe(t)
-  if (me && data.teams.some(x => x.id === me.teamId)) return <Navigate to={`${base}/me`} replace />
+  const known = me && data.teams.some(x => x.id === me.teamId) ? me : null
+  const stay = new URLSearchParams(search).has('menu')
+  if (known && !stay) return <Navigate to={`${base}/me`} replace />
   return (
     <div className="space-y-6 pt-6">
       <div className="text-center">
@@ -65,7 +68,8 @@ function Landing() {
         <p className="mt-1 text-white/60">Find your net. Play your games. Enter your scores.</p>
       </div>
       <div className="space-y-3">
-        <Button to={`${base}/player`} className="w-full py-5 text-lg">I'm a player</Button>
+        {known && <Button to={`${base}/me`} className="w-full py-5 text-lg">Continue as {known.player}</Button>}
+        <Button to={`${base}/player`} kind={known ? 'ghost' : 'primary'} className={cx('w-full', !known && 'py-5 text-lg')}>{known ? 'Pick a different name' : "I'm a player"}</Button>
         <Button to={`${base}/standings`} kind="purple" className="w-full">Standings &amp; bracket</Button>
         <Button to={`${base}/admin`} kind="ghost" className="w-full">Admin</Button>
       </div>
@@ -76,16 +80,16 @@ function Landing() {
 }
 
 function BottomNav() {
-  const { base } = useBw()
+  const { base, admin } = useBw()
   const { pathname } = useLocation()
   const items = [
     { to: `${base}/me`, label: 'Me', icon: '🙋' },
     { to: `${base}/standings`, label: 'Standings', icon: '📊' },
-    { to: `${base}/admin`, label: 'Admin', icon: '🔑' },
+    ...(admin ? [{ to: `${base}/admin`, label: 'Admin', icon: '🔑' }] : []),
   ]
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#1a1028]/95 backdrop-blur" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-      <div className="mx-auto grid max-w-md grid-cols-3">
+      <div className={cx('mx-auto grid max-w-md', items.length === 3 ? 'grid-cols-3' : 'grid-cols-2')}>
         {items.map(it => {
           const active = pathname.toLowerCase().startsWith(it.to.toLowerCase())
           return (
