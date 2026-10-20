@@ -16,12 +16,13 @@ export const cx = (...parts: (string | false | null | undefined)[]) => parts.fil
 export function Button({ children, onClick, to, kind = 'primary', disabled, className, busy }: {
   children: ReactNode; onClick?: () => void; to?: string; kind?: 'primary' | 'ghost' | 'green' | 'danger' | 'purple'; disabled?: boolean; className?: string; busy?: boolean
 }) {
-  const base = 'inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-base font-bold transition active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100 select-none'
+  // Flat buttons: a soft tinted shadow instead of the old chunky 3D edge, and no focus ring after a tap (keyboard focus still gets one).
+  const base = 'inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-base font-bold transition active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100 select-none outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:brightness-95'
   const kinds = {
-    primary: 'bg-[#ff8a2a] text-[#1a0d05] shadow-[0_6px_0_#b85a0f] active:shadow-none active:translate-y-[3px]',
-    purple: 'bg-[#8b5cf6] text-white shadow-[0_6px_0_#5b35b8] active:shadow-none active:translate-y-[3px]',
-    green: 'bg-[#22c55e] text-[#04170b] shadow-[0_6px_0_#15803d] active:shadow-none active:translate-y-[3px]',
-    danger: 'bg-[#ef4444] text-white shadow-[0_6px_0_#991b1b] active:shadow-none active:translate-y-[3px]',
+    primary: 'bg-[#ff8a2a] text-[#1a0d05] shadow-lg shadow-[#ff8a2a]/25',
+    purple: 'bg-[#8b5cf6] text-white shadow-lg shadow-[#8b5cf6]/25',
+    green: 'bg-[#22c55e] text-[#04170b] shadow-lg shadow-[#22c55e]/25',
+    danger: 'bg-[#ef4444] text-white shadow-lg shadow-[#ef4444]/25',
     ghost: 'bg-white/5 text-[#f5efe6] border border-white/15 hover:bg-white/10',
   }
   const cls = cx(base, kinds[kind], className)

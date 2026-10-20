@@ -7,7 +7,10 @@
 .bw h1, .bw h2, .bw h3, .bw p, .bw ul { margin: 0; }
 .bw a { color: inherit; text-decoration: none; }
 .bw button, .bw input, .bw select, .bw textarea { font: inherit; color: inherit; margin: 0; }
-.bw button { background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.bw button, .bw a { -webkit-tap-highlight-color: transparent; }
+.bw button { background: transparent; cursor: pointer; }
+.bw button:focus:not(:focus-visible), .bw a:focus:not(:focus-visible) { outline: none; }
+.bw button, .bw button * { -webkit-user-select: none; user-select: none; }
 .bw button:disabled { cursor: default; }
 .bw input::placeholder, .bw textarea::placeholder { color: rgba(255, 255, 255, 0.4); }
 .bw input[type="number"]::-webkit-inner-spin-button, .bw input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
