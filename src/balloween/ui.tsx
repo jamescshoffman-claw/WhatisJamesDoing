@@ -230,7 +230,7 @@ export function PoolTable({ pool, teams, matches, me }: { pool: string; teams: T
         <tbody>
           {lines.map((l, i) => (
             <tr key={l.team.id} className={cx('border-t border-white/5', l.team.id === me && 'bg-[#8b5cf6]/20')}>
-              <td className="px-3 py-2 font-bold"><span className="mr-2 text-white/40">{i + 1}</span>{l.team.name}</td>
+              <td className="px-3 py-2"><div className="flex gap-2"><span className="text-white/40">{i + 1}</span><div className="min-w-0"><div className="truncate font-bold">{l.team.name}</div><div className="truncate text-[11px] leading-tight text-white/55">{l.team.player1} &amp; {l.team.player2}</div></div></div></td>
               <td className="px-2 py-2 text-center font-mono">{l.wins}-{l.losses}</td>
               <td className={cx('px-2 py-2 text-center font-mono', l.diff > 0 ? 'text-[#86efac]' : l.diff < 0 ? 'text-[#fca5a5]' : '')}>{l.diff > 0 ? '+' : ''}{l.diff}</td>
               <td className="px-3 py-2 text-center font-mono text-white/70">{l.pf}-{l.pa}</td>
