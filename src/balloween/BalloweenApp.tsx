@@ -7,6 +7,7 @@ import PlayerPick from './PlayerPick'
 import TeamView from './TeamView'
 import Standings from './Standings'
 import Admin from './Admin'
+import { buildLabel } from './version'
 import './balloween.css'
 
 function ScrollToTop() {
@@ -46,6 +47,7 @@ export default function Balloween({ t }: { t: TKey }) {
             <Route path="admin" element={<Admin />} />
             <Route path="*" element={<Navigate to={base} replace />} />
           </Routes>
+          <footer className="mt-10 text-center text-[11px] text-white/30">Balloween {buildLabel()}</footer>
         </main>
         <BottomNav />
       </div>
