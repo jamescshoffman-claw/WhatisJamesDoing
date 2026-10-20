@@ -54,6 +54,17 @@ export function netsFor(_format: Format): string[] {
   return POOL_LETTERS.slice(0, NETS_PER_FORMAT)
 }
 
+/** Halloween names for the pools. Net letters stay A-D so the signs on the nets are simple. */
+export const POOL_NAMES: Record<Format, Record<string, string>> = {
+  men: { A: 'Pumpkin', B: 'Werewolf', C: 'Skeleton', D: 'Mummy' },
+  women: { A: 'Witch', B: 'Vampire', C: 'Ghost', D: 'Zombie' },
+}
+export function poolName(format: Format, pool: string | null | undefined): string {
+  if (!pool) return ''
+  const n = POOL_NAMES[format]?.[pool]
+  return n ? `${n} pool` : `Pool ${pool}`
+}
+
 export function teamName(p1: string, p2: string): string {
   const first = (s: string) => s.trim().split(/\s+/)[0]
   return `${first(p1)} & ${first(p2)}`
@@ -419,7 +430,7 @@ export function describeSrc(src: Src | null, matches: Match[], teams: Team[]): s
 
 // ---------------------------------------------------------------- CSV
 
-export interface ParsedTeam { player1: string; player2: string; format: Format; name?: string }
+export interface ParsedTeam { player1: string; player2: string; format: Format; name?: string; pool?: string }
 
 export function formatFromText(f: string): Format | null {
   const x = (f || '').trim().toLowerCase()
@@ -439,12 +450,12 @@ export function parseTeamsCsv(text: string): { teams: ParsedTeam[]; errors: stri
   const lines = text.split(/\r?\n/).map(l => l.replace(/\s+$/, '')).filter(l => l.trim())
   if (!lines.length) return { teams, errors }
   const split = (l: string) => (l.includes('\t') ? l.split('\t') : l.split(',')).map(c => c.trim().replace(/^"|"$/g, '').trim())
-  let cols = { p1: 0, p2: 1, fmt: 2, name: 3 }
+  let cols = { p1: 0, p2: 1, fmt: 2, name: 3, pool: 4 }
   let start = 0
   const head = split(lines[0]).map(c => c.toLowerCase())
   if (head.some(c => /player/.test(c))) {
     const find = (re: RegExp) => head.findIndex(c => re.test(c))
-    cols = { p1: find(/player\s*1|player1|^p1/), p2: find(/player\s*2|player2|^p2/), fmt: find(/format|division|bracket|net/), name: find(/team/) }
+    cols = { p1: find(/player\s*1|player1|^p1/), p2: find(/player\s*2|player2|^p2/), fmt: find(/format|division|bracket|net/), name: find(/team/), pool: find(/^pool/) }
     if (cols.p1 < 0 || cols.p2 < 0 || cols.fmt < 0) errors.push('Header found but could not find Player 1, Player 2 and Format columns.')
     start = 1
   }
@@ -454,7 +465,9 @@ export function parseTeamsCsv(text: string): { teams: ParsedTeam[]; errors: stri
     const rawName = cols.name >= 0 ? (cells[cols.name] || '') : ''
     const name = /^tbd$/i.test(rawName.trim()) ? '' : rawName.trim()
     if (!p1 || !p2 || !fmt) { errors.push(`Line ${i + 1}: expected Player 1, Player 2 and a format (Mens / Womens / Coed / Revco) but got "${lines[i].trim()}"`); continue }
-    teams.push({ player1: p1, player2: p2, format: fmt, ...(name ? { name } : {}) })
+    const poolRaw = (cols.pool >= 0 ? cells[cols.pool] || '' : '').trim().toUpperCase()
+    const pool = POOL_LETTERS.includes(poolRaw) ? poolRaw : undefined
+    teams.push({ player1: p1, player2: p2, format: fmt, ...(name ? { name } : {}), ...(pool ? { pool } : {}) })
   }
   return { teams, errors }
 }

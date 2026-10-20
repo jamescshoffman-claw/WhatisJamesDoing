@@ -54,6 +54,7 @@ export class Actions {
     if (!rows.length) return
     const { error } = await sb.from('bw_teams').insert(rows.map(r => ({
       t: this.t, format: r.format, player1: r.player1.trim(), player2: r.player2.trim(), name: (r.name || '').trim() || teamName(r.player1, r.player2),
+      pool: r.pool ?? null,
     })))
     throwIf(error)
     await this.refresh()
@@ -72,7 +73,9 @@ export class Actions {
     const teams = this.get().teams.filter(x => x.format === format)
     if (teams.length < 3) throw new Error('Need at least 3 teams in this format to draw pools.')
     throwIf((await sb.from('bw_matches').delete().eq('t', this.t).eq('format', format)).error)
-    const pools = assignPools(teams)
+    // Pools set by hand (uploaded with a Pool column) are kept; otherwise shuffle.
+    const preset = teams.every(x => x.pool)
+    const pools = preset ? Object.fromEntries(teams.map(x => [x.id, x.pool!])) : assignPools(teams)
     const updated = teams.map(x => ({ ...x, pool: pools[x.id], seed: null }))
     const ups = await Promise.all(updated.map(x => sb.from('bw_teams').update({ pool: x.pool, seed: null }).eq('t', this.t).eq('id', x.id)))
     for (const r of ups) throwIf(r.error)

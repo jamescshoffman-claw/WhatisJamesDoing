@@ -35,7 +35,6 @@ export default function Standings() {
           <div className="space-y-3">
             {pools.map(p => (
               <div key={p}>
-                <div className="mb-1 text-xs font-bold uppercase tracking-widest text-white/50">Net {poolNet(format, p)}</div>
                 <PoolTable pool={p} teams={teams.filter(x => x.pool === p)} matches={matches.filter(m => m.pool === p)} me={myTeam?.id} />
               </div>
             ))}

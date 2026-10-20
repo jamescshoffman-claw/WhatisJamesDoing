@@ -1,39 +1,43 @@
 import { parseTeamsCsv, type Format, type ParsedTeam } from './logic.ts'
 
-/** Real sign-ups (as of Oct 18, 2026). Coed plays on the men's-height net, Revco on the women's-height net. */
-const SIGNUPS = `Team Name	Player 1 Name	Player 2 Name	Format?
-Pigs CAN Fly	Lucas Palmer	Ariel Zhang	Coed
-Where are hands	Johnny luu	Farrah suprijanto	Coed
-TBD	Samuel Zhang	Fred Li	Mens
-Vollibros	Evan Li	Austin Li	Mens
-Fighting Fire	Josh Kim	Angel Obergh	Mens
-Tbd	Joseph Xiao	Darren Li	Mens
-TBD	Vikas	James Hoffman	Mens
-Lucha Libre Legends	Will Spangler	Abi Dozic	Mens
-Soft Serve	Dan Qi	Lucas Huangs	Mens
-Brotato	Jonathan Xue	Harrison Ly	Mens
-Jumpsets	Richard Cho	Joseph Drahos	Mens
-Chamelons	Kevin Chau	Josh Seol	Mens
-Set in our ways	Foris kuang	Kevin li	Mens
-freelo	Jeffrey Li	Leo Wu	Mens
-Hwaboon	TC Qin	Jana Tse	Revco
-Mickey Mouse 🐭	Wen	Seohee	Revco
-Doubles and Vibes	James Zhang	Soomin Chun	Revco
-Smaggie	Maggie	Sam	Revco
-Crankdat Afters	Brendan Feng	Amira McCants	Revco
-hi im new	Curtis Yu	Sabrina Lin	Revco
-nice aunt and unc	Daniel Tong	Shirley Wang	Revco
-Eternal Destruction	Nathan Wang	Nicole Doerges	Revco
-shawSHANK Redemption	Kristen Henry	Bobby Nilsen	Revco
-Nai bros	Lucy	Yingying	Womens
-Nai sisters	Karen Guo	Whitney Tran	Womens
-Blue Balls	Katie Chang	Carly Cooper	Womens
-Vertically challened	Eduarda gray	Vanessa Nagoya	Womens
-2 big fat pumpkins	Paige Jansky	Sophia He	Womens`
+/** The real roster and pool assignments (Oct 20, 2026). Pool letters double as net letters. */
+const ROSTER = `Team Name	Player 1 Name	Player 2 Name	Format	Pool
+Fighting Fire	Josh Kim	Angel Obergh	Mens	A
+Chamelons	Kevin Chau	Josh Seol	Mens	A
+Pigs CAN Fly	Lucas Palmer	Ariel Zhang	Mens	A
+Vollibros	Evan Li	Austin Li	Mens	A
+100 gecs	Vikas	James Hoffman	Mens	B
+Where are hands	Johnny luu	Farrah suprijanto	Mens	B
+Brotato	Jonathan Xue	Harrison Ly	Mens	B
+dig bick	Edward	By	Mens	B
+TBD	Joseph Xiao	Darren Li	Mens	C
+TBD	Samuel Zhang	Fred Li	Mens	C
+BOOM BOOM BOOM	Stanley Qiu	Timothy Liu	Mens	C
+Jumpsets	Richard Cho	Joseph Drahos	Mens	C
+Lucha Libre Legends	Will Spangler	Abi Dozic	Mens	D
+freelo	Jeffrey Li	Leo Wu	Mens	D
+Set in our ways	Foris kuang	Kevin li	Mens	D
+Soft Serve	Dan Qi	Lucas Huangs	Mens	D
+Mickey Mouse 🐭	Wen	Seohee	Womens	A
+Doubles and Vibes	James Zhang	Grace Qian	Womens	A
+Hwaboon	TC Qin	Jana Tse	Womens	A
+2 big fat pumpkins	Paige Jansky	Sophia He	Womens	A
+Nai bros	Lucy	Yingying	Womens	B
+nice aunt and unc	Daniel Tong	Shirley Wang	Womens	B
+Eternal Destruction	Nathan Wang	Nicole Doerges	Womens	B
+Vertically challenged	Eduarda gray	Vanessa Nagoya	Womens	B
+Smaggie	Maggie	Sam	Womens	C
+shawSHANK Redemption	Kristen Henry	Bobby Nilsen	Womens	C
+Kim Impossible	Anna Lok	Jade Chan	Womens	C
+Crankdat Afters	Brendan Feng	Amira McCants	Womens	C
+Blue Balls	Katie Chang	Carly Cooper	Womens	D
+hi im new	Curtis Yu	Sabrina Lin	Womens	D
+PARK at KIMS	David Kim	Angela Park	Womens	D
+Nai sisters	Karen Guo	Whitney Tran	Womens	D`
 
-/** The real sign-ups, padded with "Sample Player" teams so each net has a full 16. */
+/** The real roster, padded with "Sample Player" teams only if a net is short of 16. */
 export function sampleTeams(target = 16): ParsedTeam[] {
-  const { teams } = parseTeamsCsv(SIGNUPS)
+  const { teams } = parseTeamsCsv(ROSTER)
   let n = 0
   for (const format of ['men', 'women'] as Format[]) {
     while (teams.filter(t => t.format === format).length < target) {

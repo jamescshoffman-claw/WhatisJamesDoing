@@ -1,6 +1,6 @@
 import { useRef, useState, type ReactNode } from 'react'
 import {
-  FORMAT_LABEL, POOL_LETTERS, champion, netsFor, parseTeamsCsv, poolNet, poolsComplete, type Format, type Match, type ParsedTeam,
+  FORMAT_LABEL, POOL_LETTERS, champion, netsFor, parseTeamsCsv, poolName, poolNet, poolsComplete, type Format, type Match, type ParsedTeam,
 } from './logic'
 import { ADMIN_PASSWORD, FORMATS, phaseOf } from './store'
 import { BracketList, Button, Card, FormatToggle, H, MatchRow, Msg, Pill, ScoreSheet, cx, nameOf, useBw } from './ui'
@@ -82,7 +82,7 @@ function TeamsTab({ format }: { format: Format }) {
   return (
     <div className="space-y-4">
       <Card>
-        <H sub="Paste straight from the sign-up sheet (with its header row), or one team per line: Player 1, Player 2, Format, Team name. Mens and Coed go to the men's net; Womens and Revco to the women's net.">Upload teams</H>
+        <H sub="Paste straight from the sign-up sheet (with its header row), or one team per line: Player 1, Player 2, Format, Team name, Pool (A-D, optional). Mens and Coed go to the men's net; Womens and Revco to the women's net.">Upload teams</H>
         <textarea value={text} onChange={e => setText(e.target.value)} rows={5} placeholder={'Ann Lee, Bo Kim, Men\nCy Ng, Di Wu, Women'}
           className="w-full rounded-xl border border-white/15 bg-[#120a1c] px-3 py-2 font-mono text-sm text-white outline-none focus:border-[#ff8a2a]" />
         <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -114,7 +114,7 @@ function TeamsTab({ format }: { format: Format }) {
         <div className="space-y-2">
           {teams.map(x => (
             <Card key={x.id} className="flex items-center justify-between gap-3 py-3">
-              <div className="min-w-0"><div className="truncate font-bold">{x.name}</div><div className="truncate text-xs text-white/50">{x.player1} &amp; {x.player2}{x.pool ? ` · Pool ${x.pool}` : ''}</div></div>
+              <div className="min-w-0"><div className="truncate font-bold">{x.name}</div><div className="truncate text-xs text-white/50">{x.player1} &amp; {x.player2}{x.pool ? ` · ${poolName(x.format, x.pool)}` : ''}</div></div>
               {!locked && <button type="button" className="shrink-0 text-xs text-[#fca5a5] underline" onClick={() => run('rm' + x.id, () => data.actions.removeTeam(x.id))}>Remove</button>}
             </Card>
           ))}
@@ -141,7 +141,7 @@ function GamesTab({ format }: { format: Format }) {
     <div className="space-y-4">
       {phase === 'setup' ? (
         <Card>
-          <H sub={`${teams.length} teams will be shuffled into ${teams.length >= 12 ? 4 : teams.length >= 9 ? 3 : 2} pools, one net each.`}>Draw pools</H>
+          <H sub={teams.length > 0 && teams.every(x => x.pool) ? 'Pools came with the upload, so this keeps them as-is and creates the games.' : `${teams.length} teams will be shuffled into ${teams.length >= 12 ? 4 : teams.length >= 9 ? 3 : 2} pools, one net each.`}>Draw pools</H>
           <Button kind="green" className="w-full" disabled={teams.length < 3} busy={busy === 'gen'} onClick={() => run('gen', () => data.actions.generatePools(format), 'Pools drawn. Players can now see their net.')}>Generate pools</Button>
         </Card>
       ) : (
@@ -155,7 +155,7 @@ function GamesTab({ format }: { format: Format }) {
       {err && <Msg tone="error">{err}</Msg>}{ok && <Msg tone="ok">{ok}</Msg>}
       {pools.map(p => (
         <div key={p}>
-          <div className="mb-2 flex items-center gap-2"><span className="text-sm font-black uppercase tracking-widest">Pool {p}</span><Pill tone="purple">Net {poolNet(format, p)}</Pill><span className="text-xs text-white/50">{teams.filter(x => x.pool === p).map(x => x.name).join(' · ')}</span></div>
+          <div className="mb-2 flex items-center gap-2"><span className="text-sm font-black uppercase tracking-widest">{poolName(format, p)}</span><Pill tone="purple">Net {poolNet(format, p)}</Pill><span className="text-xs text-white/50">{teams.filter(x => x.pool === p).map(x => x.name).join(' · ')}</span></div>
           <div className="space-y-2">{matches.filter(m => m.pool === p).map(m => <MatchRow key={m.id} m={m} teams={teams} onTap={setOpen} showNet={false} />)}</div>
         </div>
       ))}

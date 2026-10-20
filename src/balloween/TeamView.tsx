@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import {
-  FORMAT_LABEL, champion, currentPlayoffMatch, describeSrc, poolNet, rulesFor, teamLosses, type Match,
+  FORMAT_LABEL, champion, currentPlayoffMatch, describeSrc, poolName, poolNet, rulesFor, teamLosses, type Match,
 } from './logic'
 import { loadMe, phaseOf, saveMe } from './store'
 import { Button, Card, FORMAT_COLOR, H, MatchRow, Msg, NetSign, Pill, PoolTable, ScoreSheet, nameOf, roundLabelFor, useBw } from './ui'
@@ -27,7 +27,7 @@ export default function TeamView() {
   const header = (
     <div className="mb-4 flex items-start justify-between gap-3">
       <div>
-        <div className="mb-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-black uppercase tracking-widest text-white" style={{ background: FORMAT_COLOR[team.format].fill }}>{FORMAT_LABEL[team.format]}{team.pool ? ` · Pool ${team.pool}` : ''}{team.seed ? ` · Seed ${team.seed}` : ''}</div>
+        <div className="mb-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-black uppercase tracking-widest text-white" style={{ background: FORMAT_COLOR[team.format].fill }}>{FORMAT_LABEL[team.format]}{team.pool ? ` · ${poolName(team.format, team.pool)}` : ''}{team.seed ? ` · Seed ${team.seed}` : ''}</div>
         <div className="text-2xl font-black leading-tight">{team.name}</div>
         <div className="text-sm text-white/60">{team.player1} &amp; {team.player2}</div>
       </div>
@@ -49,7 +49,7 @@ export default function TeamView() {
           <H sub={left ? `Play these ${left} ${left === 1 ? 'game' : 'games'} in any order, one set to 21 (win by 2). Tap a game to enter the score.` : undefined}>Your pool games</H>
           <div className="space-y-2">{myPool.map(m => <MatchRow key={m.id} m={m} teams={data.teams} me={team.id} onTap={setOpen} showNet={false} />)}</div>
         </div>
-        <div><H>Pool {team.pool}</H><PoolTable pool={team.pool!} teams={poolTeams} matches={poolMatches} me={team.id} /></div>
+        <div><H>{poolName(team.format, team.pool)}</H><PoolTable pool={team.pool!} teams={poolTeams} matches={poolMatches} me={team.id} /></div>
       </div>
     )
   } else {
