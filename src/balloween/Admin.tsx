@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
-  DEFAULT_POOL_CAP, FORMAT_LABEL, MAX_POOL_CAP, MIN_POOL_CAP, POOL_LETTERS, champion, netsFor, parseTeamsCsv, poolCapOf, poolName, poolNet, poolsComplete, type Format, type Match, type ParsedTeam,
+  DEFAULT_POOL_CAP, FORMAT_LABEL, MAX_POOL_CAP, MIN_POOL_CAP, POOL_LETTERS, champion, netsFor, parseTeamsCsv, poolCapOf, poolName, poolNet, poolsComplete, type Format, type Match, type ParsedTeam, type Team,
 } from './logic'
 import { ADMIN_PASSWORD, FORMATS, phaseOf } from './store'
 import { BracketList, Button, Card, FormatToggle, H, MatchRow, Msg, Pill, ScoreSheet, cx, nameOf, useBw } from './ui'
@@ -74,6 +74,7 @@ function TeamsTab({ format }: { format: Format }) {
   const [text, setText] = useState('')
   const [p1, setP1] = useState(''); const [p2, setP2] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
+  const [editing, setEditing] = useState<Team | null>(null)
   const parsed = parseTeamsCsv(text)
   const phase = phaseOf(data.states, format)
   const teams = data.teams.filter(x => x.format === format)
@@ -110,14 +111,52 @@ function TeamsTab({ format }: { format: Format }) {
       </Card>
       {err && <Msg tone="error">{err}</Msg>}{ok && <Msg tone="ok">{ok}</Msg>}
       <div>
-        <H sub={locked ? 'Pools are drawn, so teams are locked. Use Reset → Restart to change the field.' : `${teams.length} teams. 12 or 16 is ideal; other counts get pools of 3 and 4 plus byes.`}>{FORMAT_LABEL[format]} · {teams.length} teams</H>
+        <H sub={(locked ? 'Pools are drawn, so teams cannot be added or removed (use Reset → Restart to change the field). ' : `${teams.length} teams. 12 or 16 is ideal; other counts get pools of 3 and 4 plus byes. `) + 'Tap a team to edit its name or players.'}>{FORMAT_LABEL[format]} · {teams.length} teams</H>
         <div className="space-y-2">
           {teams.map(x => (
             <Card key={x.id} className="flex items-center justify-between gap-3 py-3">
-              <div className="min-w-0"><div className="truncate font-bold">{x.name}</div><div className="truncate text-xs text-white/50">{x.player1} &amp; {x.player2}{x.pool ? ` · ${poolName(x.format, x.pool)}` : ''}</div></div>
+              <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setEditing(x)}>
+                <div className="truncate font-bold">{x.name} <span className="ml-1 text-xs font-normal text-[#c4b5fd]">edit</span></div>
+                <div className="truncate text-xs text-white/50">{x.player1} &amp; {x.player2}{x.pool ? ` · ${poolName(x.format, x.pool)}` : ''}</div>
+              </button>
               {!locked && <button type="button" className="shrink-0 text-xs text-[#fca5a5] underline" onClick={() => run('rm' + x.id, () => data.actions.removeTeam(x.id))}>Remove</button>}
             </Card>
           ))}
+        </div>
+      </div>
+      {editing && <TeamEditor team={editing} onClose={() => setEditing(null)} onSave={f => data.actions.editTeam(editing.id, f)} />}
+    </div>
+  )
+}
+
+/** Modal to change a team's name and player names. */
+function TeamEditor({ team, onClose, onSave }: { team: Team; onClose: () => void; onSave: (f: { name: string; player1: string; player2: string }) => Promise<void> }) {
+  const [name, setName] = useState(team.name)
+  const [p1, setP1] = useState(team.player1)
+  const [p2, setP2] = useState(team.player2)
+  const [err, setErr] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const inp = 'w-full rounded-xl border border-white/15 bg-[#120a1c] px-3 py-2 text-white outline-none focus:border-[#ff8a2a]'
+  const changed = name !== team.name || p1 !== team.player1 || p2 !== team.player2
+  const submit = async () => {
+    setErr(null); setBusy(true)
+    try { await onSave({ name, player1: p1, player2: p2 }); onClose() } catch (e) { setErr((e as Error).message) } finally { setBusy(false) }
+  }
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-3 sm:items-center" onClick={onClose}>
+      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#1e1230] p-5 shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="mb-3 text-lg font-extrabold">Edit team</div>
+        <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-white/50">Team name</label>
+        <input value={name} onChange={e => setName(e.target.value)} placeholder="Blank = first names" className={inp} />
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <div><label className="mb-1 block text-xs font-bold uppercase tracking-wider text-white/50">Player 1</label><input value={p1} onChange={e => setP1(e.target.value)} className={inp} /></div>
+          <div><label className="mb-1 block text-xs font-bold uppercase tracking-wider text-white/50">Player 2</label><input value={p2} onChange={e => setP2(e.target.value)} className={inp} /></div>
+        </div>
+        <div className="mt-2 text-xs text-white/50">Changes show everywhere: standings, bracket, score sheets and the players' own pages.</div>
+        {err && <div className="mt-3"><Msg tone="error">{err}</Msg></div>}
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <Button kind="ghost" onClick={onClose}>Cancel</Button>
+          <Button kind="green" onClick={submit} busy={busy} disabled={!changed || !p1.trim() || !p2.trim()}>Save</Button>
         </div>
       </div>
     </div>

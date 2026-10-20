@@ -74,8 +74,12 @@ export class Actions {
     throwIf((await sb.from('bw_teams').delete().eq('t', this.t).eq('id', id)).error)
     await this.refresh()
   }
-  async renameTeam(id: string, player1: string, player2: string) {
-    throwIf((await sb.from('bw_teams').update({ player1, player2, name: teamName(player1, player2) }).eq('t', this.t).eq('id', id)).error)
+  /** Edit a team's name and players. Every page reads teams by id, so the change shows up everywhere. A blank name falls back to "First & First". */
+  async editTeam(id: string, fields: { name: string; player1: string; player2: string }) {
+    const player1 = fields.player1.trim(), player2 = fields.player2.trim()
+    if (!player1 || !player2) throw new Error('Both player names are needed.')
+    const name = fields.name.trim() || teamName(player1, player2)
+    throwIf((await sb.from('bw_teams').update({ player1, player2, name }).eq('t', this.t).eq('id', id)).error)
     await this.refresh()
   }
 
