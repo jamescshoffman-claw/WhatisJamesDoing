@@ -88,8 +88,9 @@ export function poolCapOf(states: FormatState[], format: Format): number {
 
 export function rulesFor(m: Pick<Match, 'stage' | 'round'>, poolCap = DEFAULT_POOL_CAP): Rules {
   if (m.stage === 'pool') return { bestOf: 1, target: poolCap, winBy2: false, cap: poolCap, label: `One set to ${poolCap}, cap at ${poolCap} (first to ${poolCap} wins, no win by 2)` }
-  if (m.stage === 'wb' && m.round === 1) return { bestOf: 1, target: 30, winBy2: false, label: 'One set to 30, no cap' }
+  if (m.stage === 'wb') return { bestOf: 1, target: 21, winBy2: true, label: 'One set to 21, win by 2' }
   if (m.stage === 'gf' || m.stage === 'gf2') return { bestOf: 3, target: 21, winBy2: true, label: 'Best of 3 sets to 21, win by 2' }
+  // losers bracket
   return { bestOf: 3, target: 15, winBy2: true, label: 'Best of 3 sets to 15, win by 2' }
 }
 
