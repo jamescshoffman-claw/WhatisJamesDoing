@@ -3,7 +3,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  applyPatches, assignPools, buildBracket, buildPoolMatches, champion, poolsComplete, reconcile, rulesFor, seedTeams, teamName,
+  MAX_POOL_CAP, MIN_POOL_CAP, applyPatches, assignPools, buildBracket, buildPoolMatches, champion, poolCapOf, poolsComplete, reconcile, rulesFor, seedTeams, teamName,
   winnerFromSets, type Format, type FormatState, type Match, type ParsedTeam, type Phase, type Team, type TKey,
 } from './logic'
 import { randomSet, sampleTeams } from './sample'
@@ -38,6 +38,17 @@ export class Actions {
 
   private async setPhase(format: Format, phase: Phase) {
     throwIf((await sb.from('bw_state').upsert({ t: this.t, format, phase, updated_at: now() })).error)
+  }
+
+  // ---- settings
+  /** Pool games are played to this many points (hard cap). Applies to both nets. */
+  async setPoolCap(cap: number) {
+    if (!Number.isInteger(cap) || cap < MIN_POOL_CAP || cap > MAX_POOL_CAP) throw new Error(`The pool cap must be a whole number from ${MIN_POOL_CAP} to ${MAX_POOL_CAP}.`)
+    const states = this.get().states
+    const rows = FORMATS.map(format => ({ t: this.t, format, phase: phaseOf(states, format), pool_cap: cap, updated_at: now() }))
+    const { error } = await sb.from('bw_state').upsert(rows)
+    if (error) throw new Error(/pool_cap/.test(error.message) ? 'The database has no pool_cap column yet: run supabase/balloween.sql in the Supabase SQL editor once.' : error.message)
+    await this.refresh()
   }
 
   /** Push reconcile() patches for one format, working from a fresh read so concurrent phones don't fight. */
@@ -86,8 +97,10 @@ export class Actions {
 
   // ---- scores
   async saveScore(match: Match, sets: [number, number][]) {
-    const side = winnerFromSets(sets, rulesFor(match))
+    const rules = rulesFor(match, poolCapOf(this.get().states, match.format))
+    const side = winnerFromSets(sets, rules)
     if (!side) throw new Error('That score does not decide a winner yet.')
+    if (rules.cap != null && sets.some(([x, y]) => Math.max(x, y) > rules.cap!)) throw new Error(`Pool games are capped at ${rules.cap}.`)
     const winner = side === 'a' ? match.team_a : match.team_b
     throwIf((await sb.from('bw_matches').update({ sets, winner, updated_at: now() }).eq('t', this.t).eq('id', match.id)).error)
     if (match.stage !== 'pool') await this.reconcileFormat(match.format)
@@ -139,7 +152,7 @@ export class Actions {
   async loadSample() { await this.clearAll(); await this.addTeams(sampleTeams()) }
 
   private async playOne(m: Match) {
-    const r = rulesFor(m); const sets: [number, number][] = []
+    const r = rulesFor(m, poolCapOf(this.get().states, m.format)); const sets: [number, number][] = []
     while (winnerFromSets(sets, r) === null) sets.push(randomSet(r.target, r.winBy2))
     await this.saveScore(m, sets)
   }

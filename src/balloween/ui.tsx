@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  FORMAT_LABEL, bracketSize, champion, poolName, rankPool, roundLabel, rulesFor, setsSummary, winnerFromSets,
+  FORMAT_LABEL, bracketSize, champion, poolCapOf, poolName, rankPool, roundLabel, rulesFor, setsSummary, winnerFromSets,
   type Format, type Match, type Team, type TKey,
 } from './logic'
 import type { Tournament } from './store'
@@ -101,7 +101,8 @@ export const nameOf = (teams: Team[], id: string | null | undefined, fallback = 
 export function ScoreSheet({ match, teams, onClose, onSave, onClear, canClear }: {
   match: Match; teams: Team[]; onClose: () => void; onSave: (sets: [number, number][]) => Promise<void>; onClear?: () => Promise<void>; canClear?: boolean
 }) {
-  const rules = rulesFor(match)
+  const { data } = useBw()
+  const rules = rulesFor(match, poolCapOf(data.states, match.format))
   const rows = rules.bestOf
   const init = Array.from({ length: rows }, (_, i) => match.sets[i] ? [String(match.sets[i][0]), String(match.sets[i][1])] : ['', ''])
   const [vals, setVals] = useState<string[][]>(init)
@@ -115,7 +116,7 @@ export function ScoreSheet({ match, teams, onClose, onSave, onClear, canClear }:
     if (!side) { setErr(rules.bestOf === 1 ? 'Enter both scores; they cannot be tied.' : 'Enter sets until one team has won two.'); return }
     for (const [x, y] of sets) {
       const hi = Math.max(x, y), lo = Math.min(x, y)
-      if (hi < rules.target && rules.bestOf === 1 && rules.target === 30) { /* no cap, but must reach 30 */ }
+      if (rules.cap != null && hi > rules.cap) { setErr(`Pool games are capped at ${rules.cap}: the winner's score can't go above ${rules.cap}. Double-check ${x}-${y}.`); return }
       if (hi < rules.target) { setErr(`A set is won at ${rules.target}${rules.winBy2 ? ' (win by 2)' : ''}. Double-check ${x}-${y}.`); return }
       if (rules.winBy2 && hi - lo < 2) { setErr(`Win by 2 needed: ${x}-${y} isn't finished.`); return }
     }
@@ -132,7 +133,7 @@ export function ScoreSheet({ match, teams, onClose, onSave, onClear, canClear }:
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
           <div className="truncate text-center text-sm font-bold">{a}</div><div /><div className="truncate text-center text-sm font-bold">{b}</div>
           {vals.map((row, i) => (
-            <RowInputs key={i} row={row} label={rows > 1 ? `Set ${i + 1}${i === 2 ? ' (if needed)' : ''}` : 'Score'}
+            <RowInputs key={i} row={row} max={rules.cap} label={rows > 1 ? `Set ${i + 1}${i === 2 ? ' (if needed)' : ''}` : 'Score'}
               onChange={r => setVals(v => v.map((x, j) => (j === i ? r : x)))} />
           ))}
         </div>
@@ -152,13 +153,13 @@ export function ScoreSheet({ match, teams, onClose, onSave, onClear, canClear }:
   )
 }
 
-function RowInputs({ row, label, onChange }: { row: string[]; label: string; onChange: (r: string[]) => void }) {
+function RowInputs({ row, label, max, onChange }: { row: string[]; label: string; max?: number; onChange: (r: string[]) => void }) {
   const inp = 'w-full rounded-xl border border-white/15 bg-[#120a1c] px-2 py-3 text-center text-3xl font-black text-white outline-none focus:border-[#ff8a2a]'
   return (
     <>
-      <input className={inp} type="number" inputMode="numeric" pattern="[0-9]*" min={0} value={row[0]} onChange={e => onChange([e.target.value, row[1]])} />
+      <input className={inp} type="number" inputMode="numeric" pattern="[0-9]*" min={0} max={max} value={row[0]} onChange={e => onChange([e.target.value, row[1]])} />
       <div className="px-1 text-center text-[10px] font-bold uppercase leading-tight text-white/50">{label}</div>
-      <input className={inp} type="number" inputMode="numeric" pattern="[0-9]*" min={0} value={row[1]} onChange={e => onChange([row[0], e.target.value])} />
+      <input className={inp} type="number" inputMode="numeric" pattern="[0-9]*" min={0} max={max} value={row[1]} onChange={e => onChange([row[0], e.target.value])} />
     </>
   )
 }

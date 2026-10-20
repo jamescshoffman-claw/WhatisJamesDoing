@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import {
-  FORMAT_LABEL, champion, currentPlayoffMatch, describeSrc, poolName, poolNet, rulesFor, teamLosses, type Match,
+  FORMAT_LABEL, champion, currentPlayoffMatch, describeSrc, poolCapOf, poolName, poolNet, rulesFor, teamLosses, type Match,
 } from './logic'
 import { loadMe, phaseOf, saveMe } from './store'
 import { Button, Card, FORMAT_COLOR, H, MatchRow, Msg, NetSign, Pill, PoolTable, ScoreSheet, nameOf, roundLabelFor, useBw } from './ui'
@@ -72,7 +72,7 @@ export default function TeamView() {
             <div className="text-xs font-black uppercase tracking-widest text-[#ffb270]">{roundLabelFor(cur, data.teams)}{losses === 1 ? ' · elimination game' : ''}</div>
             <div className="text-2xl font-black">Play {opp}</div>
             {oppTeam && <div className="text-base font-semibold text-white">{oppTeam.player1} &amp; {oppTeam.player2}</div>}
-            <div className="text-sm text-white/70">{rulesFor(cur).label}.{cur.net ? '' : ' Nets are full right now; this page will show your net as soon as one frees up.'}</div>
+            <div className="text-sm text-white/70">{rulesFor(cur, poolCapOf(data.states, cur.format)).label}.{cur.net ? '' : ' Nets are full right now; this page will show your net as soon as one frees up.'}</div>
             <Button className="mt-3 w-full" onClick={() => setOpen(cur)}>Enter score</Button>
           </Card>
         </div>

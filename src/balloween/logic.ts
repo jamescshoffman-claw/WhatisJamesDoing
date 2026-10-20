@@ -42,7 +42,7 @@ export interface Match {
   ready_at: string | null
 }
 
-export interface FormatState { t: string; format: Format; phase: Phase }
+export interface FormatState { t: string; format: Format; phase: Phase; pool_cap?: number | null }
 
 export const FORMAT_LABEL: Record<Format, string> = { men: "Men's net", women: "Women's net" }
 export const NET_PREFIX: Record<Format, string> = { men: 'M', women: 'W' }
@@ -72,10 +72,22 @@ export function teamName(p1: string, p2: string): string {
 
 // ---------------------------------------------------------------- rules
 
-export interface Rules { bestOf: 1 | 3; target: number; winBy2: boolean; label: string }
+/** `cap` is a hard ceiling on a set score: the first team to reach it wins, no win-by-2 past it. */
+export interface Rules { bestOf: 1 | 3; target: number; winBy2: boolean; cap?: number; label: string }
 
-export function rulesFor(m: Pick<Match, 'stage' | 'round'>): Rules {
-  if (m.stage === 'pool') return { bestOf: 1, target: 21, winBy2: true, label: 'One set to 21, win by 2' }
+/** Pool games are one set to this many points unless the admin sets another cap. */
+export const DEFAULT_POOL_CAP = 21
+export const MIN_POOL_CAP = 5
+export const MAX_POOL_CAP = 50
+
+/** The pool cap in play for a format (admin setting in bw_state), or the default. */
+export function poolCapOf(states: FormatState[], format: Format): number {
+  const v = states.find(s => s.format === format)?.pool_cap
+  return typeof v === 'number' && v >= MIN_POOL_CAP && v <= MAX_POOL_CAP ? v : DEFAULT_POOL_CAP
+}
+
+export function rulesFor(m: Pick<Match, 'stage' | 'round'>, poolCap = DEFAULT_POOL_CAP): Rules {
+  if (m.stage === 'pool') return { bestOf: 1, target: poolCap, winBy2: false, cap: poolCap, label: `One set to ${poolCap}, cap at ${poolCap} (first to ${poolCap} wins, no win by 2)` }
   if (m.stage === 'wb' && m.round === 1) return { bestOf: 1, target: 30, winBy2: false, label: 'One set to 30, no cap' }
   if (m.stage === 'gf' || m.stage === 'gf2') return { bestOf: 3, target: 21, winBy2: true, label: 'Best of 3 sets to 21, win by 2' }
   return { bestOf: 3, target: 15, winBy2: true, label: 'Best of 3 sets to 15, win by 2' }

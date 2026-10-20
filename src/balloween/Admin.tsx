@@ -1,6 +1,6 @@
-import { useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
-  FORMAT_LABEL, POOL_LETTERS, champion, netsFor, parseTeamsCsv, poolName, poolNet, poolsComplete, type Format, type Match, type ParsedTeam,
+  DEFAULT_POOL_CAP, FORMAT_LABEL, MAX_POOL_CAP, MIN_POOL_CAP, POOL_LETTERS, champion, netsFor, parseTeamsCsv, poolCapOf, poolName, poolNet, poolsComplete, type Format, type Match, type ParsedTeam,
 } from './logic'
 import { ADMIN_PASSWORD, FORMATS, phaseOf } from './store'
 import { BracketList, Button, Card, FormatToggle, H, MatchRow, Msg, Pill, ScoreSheet, cx, nameOf, useBw } from './ui'
@@ -152,6 +152,7 @@ function GamesTab({ format }: { format: Format }) {
             : <Button kind="ghost" className="px-3 py-2 text-xs" onClick={() => setConfirm(true)}>Redraw pools</Button>)}
         </Card>
       )}
+      <PoolCapSetting />
       {err && <Msg tone="error">{err}</Msg>}{ok && <Msg tone="ok">{ok}</Msg>}
       {pools.map(p => (
         <div key={p}>
@@ -161,6 +162,30 @@ function GamesTab({ format }: { format: Format }) {
       ))}
       {open && <ScoreSheet match={open} teams={teams} onClose={() => setOpen(null)} onSave={s => data.actions.saveScore(open, s)} onClear={() => data.actions.clearScore(open)} canClear />}
     </div>
+  )
+}
+
+/** Admin setting: pool games are one set to this many points, hard cap (same for both nets). */
+function PoolCapSetting() {
+  const { data } = useBw()
+  const { busy, err, ok, run } = useRun()
+  const current = poolCapOf(data.states, 'men')
+  const [val, setVal] = useState(String(current))
+  useEffect(() => { setVal(String(current)) }, [current])
+  const n = Number(val)
+  const valid = val !== '' && Number.isInteger(n) && n >= MIN_POOL_CAP && n <= MAX_POOL_CAP
+  const changed = valid && n !== current
+  return (
+    <Card>
+      <H sub={`Pool games are one set, first to this score wins (no win by 2, the score never goes above it). Applies to both nets. Default ${DEFAULT_POOL_CAP}.`}>Pool play max score</H>
+      <div className="flex items-center gap-2">
+        <input type="number" inputMode="numeric" pattern="[0-9]*" min={MIN_POOL_CAP} max={MAX_POOL_CAP} value={val} onChange={e => setVal(e.target.value)}
+          className="w-24 rounded-xl border border-white/15 bg-[#120a1c] px-3 py-2 text-center text-2xl font-black text-white outline-none focus:border-[#ff8a2a]" />
+        <Button kind="green" className="px-4 py-2 text-sm" disabled={!changed} busy={busy === 'cap'} onClick={() => run('cap', () => data.actions.setPoolCap(n), `Pool games now go to ${n}.`)}>Save</Button>
+        <div className="text-xs text-white/50">Currently {current}.{val !== '' && !valid ? ` Use a whole number from ${MIN_POOL_CAP} to ${MAX_POOL_CAP}.` : ''}</div>
+      </div>
+      {err && <div className="mt-2"><Msg tone="error">{err}</Msg></div>}{ok && <div className="mt-2"><Msg tone="ok">{ok}</Msg></div>}
+    </Card>
   )
 }
 

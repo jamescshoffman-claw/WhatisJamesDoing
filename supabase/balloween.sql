@@ -40,9 +40,12 @@ create table if not exists public.bw_state (
   t          text not null,
   format     text not null check (format in ('men', 'women')),
   phase      text not null default 'setup', -- setup | pools | preview | playoffs
+  pool_cap   integer,                      -- pool games are one set to this score, hard cap (null = 21)
   updated_at timestamptz not null default now(),
   primary key (t, format)
 );
+-- Added Oct 20, 2026: safe to re-run on an existing database.
+alter table public.bw_state add column if not exists pool_cap integer;
 
 create index if not exists bw_teams_t_idx   on public.bw_teams (t, format);
 create index if not exists bw_matches_t_idx on public.bw_matches (t, format);
