@@ -196,6 +196,7 @@ function PlayoffsTab({ format }: { format: Format }) {
   const { busy, err, ok, run } = useRun()
   const [open, setOpen] = useState<Match | null>(null)
   const [view, setView] = useState<'diagram' | 'list'>('diagram')
+  const [confirm, setConfirm] = useState(false)
   const phase = phaseOf(data.states, format)
   const teams = data.teams.filter(x => x.format === format)
   const matches = data.matches.filter(m => m.format === format)
@@ -225,6 +226,14 @@ function PlayoffsTab({ format }: { format: Format }) {
         <Card className="flex items-center justify-between gap-2">
           <div><div className="font-bold">Playoffs are live</div><div className="text-xs text-white/50">{live.length} games in progress or waiting for a net.</div></div>
           <Button kind="ghost" className="px-3 py-2 text-xs" busy={busy === 'recheck'} onClick={() => run('recheck', () => data.actions.recheck(format), 'Bracket rechecked.')}>Recheck</Button>
+        </Card>
+      )}
+      {phase === 'playoffs' && (
+        <Card className="flex items-center justify-between gap-3">
+          <div><div className="font-bold">Start playoffs over</div><div className="text-xs text-white/50">Throws away every playoff result, rebuilds the bracket from the pool standings and goes back to the preview. Pool scores are kept.</div></div>
+          {confirm
+            ? <div className="flex flex-col gap-1"><Button kind="danger" className="px-3 py-2 text-xs" busy={busy === 'restart'} onClick={() => run('restart', () => data.actions.startPlayoffs(format).then(() => setConfirm(false)), 'Bracket rebuilt. Review it, then publish.')}>Yes, restart playoffs</Button><button type="button" className="text-xs underline" onClick={() => setConfirm(false)}>Cancel</button></div>
+            : <Button kind="ghost" className="px-3 py-2 text-xs" onClick={() => setConfirm(true)}>Restart playoffs</Button>}
         </Card>
       )}
       {err && <Msg tone="error">{err}</Msg>}{ok && <Msg tone="ok">{ok}</Msg>}
