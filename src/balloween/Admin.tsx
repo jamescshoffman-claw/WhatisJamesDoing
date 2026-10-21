@@ -79,6 +79,7 @@ function TeamsTab({ format }: { format: Format }) {
   const phase = phaseOf(data.states, format)
   const teams = data.teams.filter(x => x.format === format)
   const locked = phase !== 'setup'
+  const signedIn = teams.reduce((n, x) => n + (x.player1_in ? 1 : 0) + (x.player2_in ? 1 : 0), 0)
   const onFile = (f: File | undefined) => { if (!f) return; const r = new FileReader(); r.onload = () => setText(String(r.result || '')); r.readAsText(f) }
   return (
     <div className="space-y-4">
@@ -110,6 +111,12 @@ function TeamsTab({ format }: { format: Format }) {
           onClick={() => run('one', () => data.actions.addTeams([{ player1: p1, player2: p2, format } as ParsedTeam]).then(() => { setP1(''); setP2('') }), 'Team added.')}>Add team</Button>
       </Card>
       {err && <Msg tone="error">{err}</Msg>}{ok && <Msg tone="ok">{ok}</Msg>}
+      {teams.length > 0 && (
+        <Card className={cx('flex items-center justify-between gap-3', signedIn === teams.length * 2 && 'border-[#22c55e]')}>
+          <div><div className="font-bold">Signed in: {signedIn} / {teams.length * 2} players</div><div className="text-xs text-white/50">Players sign in from their own page. Tap a name below to sign someone in or out.</div></div>
+          <div className={cx('text-2xl font-black', signedIn === teams.length * 2 ? 'text-[#86efac]' : 'text-[#ffb270]')}>{teams.length ? Math.round((signedIn / (teams.length * 2)) * 100) : 0}%</div>
+        </Card>
+      )}
       <div>
         <H sub={(locked ? 'Pools are drawn, so teams cannot be added or removed (use Reset → Restart to change the field). ' : `${teams.length} teams. 12 or 16 is ideal; other counts get pools of 3 and 4 plus byes. `) + 'Tap a team to edit its name or players.'}>{FORMAT_LABEL[format]} · {teams.length} teams</H>
         <div className="space-y-2">
@@ -117,8 +124,17 @@ function TeamsTab({ format }: { format: Format }) {
             <Card key={x.id} className="flex items-center justify-between gap-3 py-3">
               <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setEditing(x)}>
                 <div className="truncate font-bold">{x.name} <span className="ml-1 text-xs font-normal text-[#c4b5fd]">edit</span></div>
-                <div className="truncate text-xs text-white/50">{x.player1} &amp; {x.player2}{x.pool ? ` · ${poolName(x.format, x.pool)}` : ''}</div>
+                <div className="truncate text-xs text-white/50">{x.pool ? poolName(x.format, x.pool) : 'No pool yet'}</div>
               </button>
+              <div className="flex shrink-0 flex-col gap-1">
+                {([[1, x.player1, x.player1_in], [2, x.player2, x.player2_in]] as [1 | 2, string, string | null | undefined][]).map(([slot, name, at]) => (
+                  <button key={slot} type="button" title={at ? `Signed in ${new Date(at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}` : 'Not signed in'}
+                    disabled={busy === 'in' + x.id + slot} onClick={() => run('in' + x.id + slot, () => data.actions.setSignedIn(x.id, slot, !at))}
+                    className={cx('max-w-[140px] truncate rounded-full border px-2 py-0.5 text-left text-xs font-bold', at ? 'border-[#22c55e]/60 bg-[#22c55e]/20 text-[#86efac]' : 'border-white/15 bg-white/5 text-white/50')}>
+                    {at ? '✓' : '○'} {name}
+                  </button>
+                ))}
+              </div>
               {!locked && <button type="button" className="shrink-0 text-xs text-[#fca5a5] underline" onClick={() => run('rm' + x.id, () => data.actions.removeTeam(x.id))}>Remove</button>}
             </Card>
           ))}

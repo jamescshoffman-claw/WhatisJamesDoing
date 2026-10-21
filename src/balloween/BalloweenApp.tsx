@@ -67,11 +67,11 @@ function Landing() {
       <div className="text-center">
         <div className="text-6xl">🏐</div>
         <h1 className="mt-2 text-3xl font-black tracking-tight">Balloween</h1>
-        <p className="mt-1 text-white/60">Find your net. Play your games. Enter your scores.</p>
+        <p className="mt-1 text-white/60">Sign in, find your net, play your games, enter your scores.</p>
       </div>
       <div className="space-y-3">
         {known && <Button to={`${base}/me`} className="w-full py-5 text-lg">Continue as {known.player}</Button>}
-        <Button to={`${base}/player`} kind={known ? 'ghost' : 'primary'} className={cx('w-full', !known && 'py-5 text-lg')}>{known ? 'Pick a different name' : "I'm a player"}</Button>
+        <Button to={`${base}/player`} kind={known ? 'ghost' : 'primary'} className={cx('w-full', !known && 'py-5 text-lg')}>{known ? 'Pick a different name' : 'Begin sign-in'}</Button>
         <Button to={`${base}/standings`} kind="purple" className="w-full">Standings &amp; bracket</Button>
         <Button to={`${base}/admin`} kind="ghost" className="w-full">Admin</Button>
       </div>

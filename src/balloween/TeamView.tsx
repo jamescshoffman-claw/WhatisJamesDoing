@@ -1,11 +1,51 @@
 import { useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import {
-  FORMAT_LABEL, champion, currentPlayoffMatch, describeSrc, poolCapOf, poolName, poolNet, rulesFor, teamLosses, type Match,
+  FORMAT_LABEL, champion, currentPlayoffMatch, describeSrc, poolCapOf, poolName, poolNet, rulesFor, teamLosses, type Match, type Team,
 } from './logic'
 import { loadMe, phaseOf, saveMe } from './store'
 import { Button, Card, FORMAT_COLOR, H, MatchRow, Msg, NetSign, Pill, PoolTable, ScoreSheet, nameOf, roundLabelFor, useBw } from './ui'
 import { BracketDiagram } from './Bracket'
+
+/** "I'm here" check-in for both players on the team. Signing in for your partner is allowed on purpose. */
+function SignInCard({ team, me, onSet }: { team: Team; me: string; onSet: (slot: 1 | 2, on: boolean) => Promise<void> }) {
+  const [busy, setBusy] = useState<1 | 2 | null>(null)
+  const [err, setErr] = useState<string | null>(null)
+  const players: { slot: 1 | 2; name: string; at: string | null | undefined }[] = [
+    { slot: 1, name: team.player1, at: team.player1_in }, { slot: 2, name: team.player2, at: team.player2_in },
+  ]
+  const mine = players.find(p => p.name === me) ?? players[0]
+  const partner = players.find(p => p !== mine)!
+  const set = async (slot: 1 | 2, on: boolean) => {
+    setBusy(slot); setErr(null)
+    try { await onSet(slot, on) } catch (e) { setErr((e as Error).message) } finally { setBusy(null) }
+  }
+  const when = (at: string) => new Date(at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+  const allIn = players.every(p => p.at)
+  return (
+    <Card tone={allIn ? 'win' : 'orange'}>
+      {mine.at ? (
+        <div className="flex items-center justify-between gap-3">
+          <div><div className="text-lg font-extrabold">✓ You're signed in</div><div className="text-xs text-white/60">{mine.name} at {when(mine.at)}</div></div>
+          <button type="button" className="shrink-0 text-xs text-white/50 underline" disabled={busy !== null} onClick={() => set(mine.slot, false)}>Undo</button>
+        </div>
+      ) : (
+        <div>
+          <div className="text-lg font-extrabold">Sign in for tonight</div>
+          <div className="mb-3 text-sm text-white/70">Tap once you're here so the organizers know you made it.</div>
+          <Button kind="green" className="w-full" busy={busy === mine.slot} disabled={busy !== null} onClick={() => set(mine.slot, true)}>I'm here, sign me in</Button>
+        </div>
+      )}
+      <div className="mt-3 flex items-center justify-between gap-3 border-t border-white/10 pt-3 text-sm">
+        <div>{partner.at ? <span className="text-[#86efac]">✓ {partner.name} signed in at {when(partner.at)}</span> : <span className="text-white/60">{partner.name} hasn't signed in yet</span>}</div>
+        {partner.at
+          ? <button type="button" className="shrink-0 text-xs text-white/50 underline" disabled={busy !== null} onClick={() => set(partner.slot, false)}>Undo</button>
+          : <Button kind="ghost" className="shrink-0 px-3 py-1.5 text-xs" busy={busy === partner.slot} disabled={busy !== null} onClick={() => set(partner.slot, true)}>Sign in for {partner.name.split(' ')[0]}</Button>}
+      </div>
+      {err && <div className="mt-2"><Msg tone="error">{err}</Msg></div>}
+    </Card>
+  )
+}
 
 export default function TeamView() {
   const { base, t, data } = useBw()
@@ -23,6 +63,7 @@ export default function TeamView() {
   const myPool = poolMatches.filter(m => m.team_a === team.id || m.team_b === team.id)
   const myPlayoff = fmtMatches.filter(m => m.stage !== 'pool' && !m.void && (m.team_a === team.id || m.team_b === team.id) && (m.team_a && m.team_b))
   const notYou = () => { saveMe(t, null); force(x => x + 1) }
+  const poolCap = poolCapOf(data.states, team.format)
 
   const header = (
     <div className="mb-4 flex items-start justify-between gap-3">
@@ -34,6 +75,7 @@ export default function TeamView() {
       <Link to={`${base}/player`} onClick={notYou} className="shrink-0 text-xs text-white/50 underline">Not you?</Link>
     </div>
   )
+  const signIn = <SignInCard team={team} me={me.player} onSet={(slot, on) => data.actions.setSignedIn(team.id, slot, on)} />
 
   let body
   if (phase === 'setup') {
@@ -46,7 +88,7 @@ export default function TeamView() {
         {phase === 'preview' && <Msg tone="ok">Pool play is done. The playoff bracket is being set up, hang tight.</Msg>}
         {left === 0 && phase === 'pools' && <Msg tone="ok">All your pool games are in. Wait for the playoff bracket.</Msg>}
         <div>
-          <H sub={left ? `Play these ${left} ${left === 1 ? 'game' : 'games'} in any order, one set to 21 (win by 2). Tap a game to enter the score.` : undefined}>Your pool games</H>
+          <H sub={left ? `Play these ${left} ${left === 1 ? 'game' : 'games'} in any order, one set to ${poolCap} (first to ${poolCap} wins). Tap a game to enter the score.` : undefined}>Your pool games</H>
           <div className="space-y-2">{myPool.map(m => <MatchRow key={m.id} m={m} teams={data.teams} me={team.id} onTap={setOpen} showNet={false} />)}</div>
         </div>
         <div><H>{poolName(team.format, team.pool)}</H><PoolTable pool={team.pool!} teams={poolTeams} matches={poolMatches} me={team.id} /></div>
@@ -106,6 +148,7 @@ export default function TeamView() {
   return (
     <div>
       {header}
+      <div className="mb-4">{signIn}</div>
       {body}
       {open && <ScoreSheet match={open} teams={data.teams} onClose={() => setOpen(null)} onSave={sets => data.actions.saveScore(open, sets)} />}
     </div>

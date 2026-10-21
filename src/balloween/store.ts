@@ -40,6 +40,15 @@ export class Actions {
     throwIf((await sb.from('bw_state').upsert({ t: this.t, format, phase, updated_at: now() })).error)
   }
 
+  // ---- sign-in
+  /** Mark a player as signed in (here tonight) or not. Anyone can do it for anyone; the admin list shows who has. */
+  async setSignedIn(teamId: string, slot: 1 | 2, on: boolean) {
+    const col = slot === 1 ? 'player1_in' : 'player2_in'
+    const { error } = await sb.from('bw_teams').update({ [col]: on ? now() : null }).eq('t', this.t).eq('id', teamId)
+    if (error) throw new Error(/player[12]_in/.test(error.message) ? 'The database has no sign-in columns yet: run supabase/balloween.sql in the Supabase SQL editor once.' : error.message)
+    await this.refresh()
+  }
+
   // ---- settings
   /** Pool games are played to this many points (hard cap). Applies to both nets. */
   async setPoolCap(cap: number) {
@@ -142,6 +151,7 @@ export class Actions {
   async restart() {
     throwIf((await sb.from('bw_matches').delete().eq('t', this.t)).error)
     throwIf((await sb.from('bw_teams').update({ pool: null, seed: null }).eq('t', this.t)).error)
+    await sb.from('bw_teams').update({ player1_in: null, player2_in: null }).eq('t', this.t) // sign-ins reset too; ignored if the columns are missing
     for (const f of FORMATS) await this.setPhase(f, 'setup')
     await this.refresh()
   }

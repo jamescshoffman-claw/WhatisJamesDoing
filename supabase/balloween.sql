@@ -11,8 +11,13 @@ create table if not exists public.bw_teams (
   name       text not null,
   pool       text,
   seed       integer,
+  player1_in timestamptz,                   -- when the player signed in on the app (null = not yet)
+  player2_in timestamptz,
   created_at timestamptz not null default now()
 );
+-- Added Oct 21, 2026: safe to re-run on an existing database.
+alter table public.bw_teams add column if not exists player1_in timestamptz;
+alter table public.bw_teams add column if not exists player2_in timestamptz;
 
 create table if not exists public.bw_matches (
   id         uuid primary key default gen_random_uuid(),

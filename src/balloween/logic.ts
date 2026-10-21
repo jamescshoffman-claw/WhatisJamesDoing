@@ -20,6 +20,9 @@ export interface Team {
   name: string
   pool: string | null
   seed: number | null
+  /** When each player signed in on the app (null = not yet). */
+  player1_in?: string | null
+  player2_in?: string | null
 }
 
 export interface Match {
