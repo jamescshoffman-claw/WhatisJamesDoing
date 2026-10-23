@@ -7,6 +7,7 @@ import PlayerPick from './PlayerPick'
 import TeamView from './TeamView'
 import Standings from './Standings'
 import Admin from './Admin'
+import Info from './Info'
 import { buildLabel } from './version'
 import './balloween.css'
 
@@ -44,6 +45,7 @@ export default function Balloween({ t }: { t: TKey }) {
             <Route path="player" element={<PlayerPick />} />
             <Route path="me" element={<TeamView />} />
             <Route path="standings" element={<Standings />} />
+            <Route path="info" element={<Info />} />
             <Route path="admin" element={<Admin />} />
             <Route path="*" element={<Navigate to={base} replace />} />
           </Routes>
@@ -73,6 +75,7 @@ function Landing() {
         {known && <Button to={`${base}/me`} className="w-full py-5 text-lg">Continue as {known.player}</Button>}
         <Button to={`${base}/player`} kind={known ? 'ghost' : 'primary'} className={cx('w-full', !known && 'py-5 text-lg')}>{known ? 'Pick a different name' : 'Begin sign-in'}</Button>
         <Button to={`${base}/standings`} kind="purple" className="w-full">Standings &amp; bracket</Button>
+        <Button to={`${base}/info`} kind="ghost" className="w-full">How it works</Button>
         <Button to={`${base}/admin`} kind="ghost" className="w-full">Admin</Button>
       </div>
       {data.loading && <p className="text-center text-sm text-white/40">Loading…</p>}
@@ -87,11 +90,12 @@ function BottomNav() {
   const items = [
     { to: `${base}/me`, label: 'Me', icon: '🙋' },
     { to: `${base}/standings`, label: 'Standings', icon: '📊' },
+    { to: `${base}/info`, label: 'Info', icon: 'ℹ️' },
     ...(admin ? [{ to: `${base}/admin`, label: 'Admin', icon: '🔑' }] : []),
   ]
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#1a1028]/95 backdrop-blur" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-      <div className={cx('mx-auto grid max-w-md', items.length === 3 ? 'grid-cols-3' : 'grid-cols-2')}>
+      <div className={cx('mx-auto grid max-w-md', items.length === 4 ? 'grid-cols-4' : 'grid-cols-3')}>
         {items.map(it => {
           const active = pathname.toLowerCase().startsWith(it.to.toLowerCase())
           return (
