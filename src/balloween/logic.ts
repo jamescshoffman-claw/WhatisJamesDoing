@@ -60,7 +60,7 @@ export function netsFor(format: Format): string[] {
 
 /** Halloween names for the pools. Pool letters are A-D in both formats; the nets they play on come from poolNet. */
 export const POOL_NAMES: Record<Format, Record<string, string>> = {
-  men: { A: 'Pumpkin', B: 'Werewolf', C: 'Skeleton', D: 'Mummy' },
+  men: { A: 'Werewolf', B: 'Clown', C: 'Skeleton', D: 'Mummy' },
   women: { A: 'Witch', B: 'Vampire', C: 'Ghost', D: 'Zombie' },
 }
 export function poolName(format: Format, pool: string | null | undefined): string {

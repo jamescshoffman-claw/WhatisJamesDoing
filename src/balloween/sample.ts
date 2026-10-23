@@ -1,8 +1,8 @@
 import { parseTeamsCsv, type Format, type ParsedTeam } from './logic.ts'
 
-/** The real roster and pool assignments (Oct 20, 2026). Pool letters double as net letters. */
+/** The real roster and pool assignments (men updated Oct 23, 2026). Pools A-D; men play on nets A-D, women on E-H. */
 const ROSTER = `Team Name	Player 1 Name	Player 2 Name	Format	Pool
-Fighting Fire	Josh Kim	Angel Obergh	Mens	A
+freelo	Jeffrey Li	Leo Wu	Mens	A
 Chamelons	Kevin Chau	Josh Seol	Mens	A
 Pigs CAN Fly	Lucas Palmer	Ariel Zhang	Mens	A
 Vollibros	Evan Li	Austin Li	Mens	A
@@ -10,13 +10,13 @@ Vollibros	Evan Li	Austin Li	Mens	A
 Where are hands	Johnny luu	Farrah suprijanto	Mens	B
 Brotato	Jonathan Xue	Harrison Ly	Mens	B
 dig bick	Edward	By	Mens	B
-TBD	Joseph Xiao	Darren Li	Mens	C
-TBD	Samuel Zhang	Fred Li	Mens	C
+Joust Kidding	Joseph Xiao	Darren Li	Mens	C
+The Goofy Goobers	Samuel Zhang	Fred Li	Mens	C
 BOOM BOOM BOOM	Stanley Qiu	Timothy Liu	Mens	C
 Jumpsets	Richard Cho	Joseph Drahos	Mens	C
 Lucha Libre Legends	Will Spangler	Abi Dozic	Mens	D
-freelo	Jeffrey Li	Leo Wu	Mens	D
-Set in our ways	Foris kuang	Kevin li	Mens	D
+x	Luke Choe	Alex Chau	Mens	D
+Oh Deer	Tobias Krause	Nicole	Mens	D
 Soft Serve	Dan Qi	Lucas Huangs	Mens	D
 Mickey Mouse 🐭	Wen	Seohee	Womens	A
 Doubles and Vibes	James Zhang	Grace Qian	Womens	A
