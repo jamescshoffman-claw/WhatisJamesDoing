@@ -79,7 +79,7 @@ function TeamsTab({ format }: { format: Format }) {
   const phase = phaseOf(data.states, format)
   const teams = data.teams.filter(x => x.format === format)
   const locked = phase !== 'setup'
-  const signedIn = teams.reduce((n, x) => n + (x.player1_in ? 1 : 0) + (x.player2_in ? 1 : 0), 0)
+  const signedIn = teams.filter(x => x.player1_in || x.player2_in).length // one player signing in counts for the team
   const onFile = (f: File | undefined) => { if (!f) return; const r = new FileReader(); r.onload = () => setText(String(r.result || '')); r.readAsText(f) }
   return (
     <div className="space-y-4">
@@ -112,9 +112,9 @@ function TeamsTab({ format }: { format: Format }) {
       </Card>
       {err && <Msg tone="error">{err}</Msg>}{ok && <Msg tone="ok">{ok}</Msg>}
       {teams.length > 0 && (
-        <Card className={cx('flex items-center justify-between gap-3', signedIn === teams.length * 2 && 'border-[#22c55e]')}>
-          <div><div className="font-bold">Signed in: {signedIn} / {teams.length * 2} players</div><div className="text-xs text-white/50">Players sign in from their own page. Tap a name below to sign someone in or out.</div></div>
-          <div className={cx('text-2xl font-black', signedIn === teams.length * 2 ? 'text-[#86efac]' : 'text-[#ffb270]')}>{teams.length ? Math.round((signedIn / (teams.length * 2)) * 100) : 0}%</div>
+        <Card className={cx('flex items-center justify-between gap-3', signedIn === teams.length && 'border-[#22c55e]')}>
+          <div><div className="font-bold">Signed in: {signedIn} / {teams.length} teams</div><div className="text-xs text-white/50">A team is in once either player signs in from their page. Tap a name below to sign someone in or out.</div></div>
+          <div className={cx('text-2xl font-black', signedIn === teams.length ? 'text-[#86efac]' : 'text-[#ffb270]')}>{teams.length ? Math.round((signedIn / teams.length) * 100) : 0}%</div>
         </Card>
       )}
       <div>

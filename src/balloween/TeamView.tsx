@@ -7,41 +7,35 @@ import { loadMe, phaseOf, saveMe } from './store'
 import { Button, Card, FORMAT_COLOR, H, MatchRow, Msg, NetSign, Pill, PoolTable, ScoreSheet, nameOf, roundLabelFor, useBw } from './ui'
 import { BracketDiagram } from './Bracket'
 
-/** "I'm here" check-in for both players on the team. Signing in for your partner is allowed on purpose. */
+/** "We're here" check-in. One player signing in counts for the whole team. */
 function SignInCard({ team, me, onSet }: { team: Team; me: string; onSet: (slot: 1 | 2, on: boolean) => Promise<void> }) {
-  const [busy, setBusy] = useState<1 | 2 | null>(null)
+  const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
   const players: { slot: 1 | 2; name: string; at: string | null | undefined }[] = [
     { slot: 1, name: team.player1, at: team.player1_in }, { slot: 2, name: team.player2, at: team.player2_in },
   ]
   const mine = players.find(p => p.name === me) ?? players[0]
-  const partner = players.find(p => p !== mine)!
-  const set = async (slot: 1 | 2, on: boolean) => {
-    setBusy(slot); setErr(null)
-    try { await onSet(slot, on) } catch (e) { setErr((e as Error).message) } finally { setBusy(null) }
+  const inPlayers = players.filter(p => p.at)
+  const run = async (f: () => Promise<unknown>) => {
+    setBusy(true); setErr(null)
+    try { await f() } catch (e) { setErr((e as Error).message) } finally { setBusy(false) }
   }
   const when = (at: string) => new Date(at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
-  const allIn = players.every(p => p.at)
+  const first = inPlayers[0]
   return (
-    <Card tone={allIn ? 'win' : 'orange'}>
-      {mine.at ? (
+    <Card tone={first ? 'win' : 'orange'}>
+      {first ? (
         <div className="flex items-center justify-between gap-3">
-          <div><div className="text-lg font-extrabold">✓ You're signed in</div><div className="text-xs text-white/60">{mine.name} at {when(mine.at)}</div></div>
-          <button type="button" className="shrink-0 text-xs text-white/50 underline" disabled={busy !== null} onClick={() => set(mine.slot, false)}>Undo</button>
+          <div><div className="text-lg font-extrabold">✓ Your team is signed in</div><div className="text-xs text-white/60">{first.name === mine.name ? 'You' : first.name} at {when(first.at!)}</div></div>
+          <button type="button" className="shrink-0 text-xs text-white/50 underline" disabled={busy} onClick={() => run(() => Promise.all(inPlayers.map(p => onSet(p.slot, false))))}>Undo</button>
         </div>
       ) : (
         <div>
-          <div className="text-lg font-extrabold">Sign in for tonight</div>
-          <div className="mb-3 text-sm text-white/70">Tap once you're here so the organizers know you made it.</div>
-          <Button kind="green" className="w-full" busy={busy === mine.slot} disabled={busy !== null} onClick={() => set(mine.slot, true)}>I'm here, sign me in</Button>
+          <div className="text-lg font-extrabold">Sign your team in</div>
+          <div className="mb-3 text-sm text-white/70">Tap once you're here so the organizers know your team made it. Only one of you needs to do this.</div>
+          <Button kind="green" className="w-full" busy={busy} disabled={busy} onClick={() => run(() => onSet(mine.slot, true))}>We're here, sign us in</Button>
         </div>
       )}
-      <div className="mt-3 flex items-center justify-between gap-3 border-t border-white/10 pt-3 text-sm">
-        <div>{partner.at ? <span className="text-[#86efac]">✓ {partner.name} signed in at {when(partner.at)}</span> : <span className="text-white/60">{partner.name} hasn't signed in yet</span>}</div>
-        {partner.at
-          ? <button type="button" className="shrink-0 text-xs text-white/50 underline" disabled={busy !== null} onClick={() => set(partner.slot, false)}>Undo</button>
-          : <Button kind="ghost" className="shrink-0 px-3 py-1.5 text-xs" busy={busy === partner.slot} disabled={busy !== null} onClick={() => set(partner.slot, true)}>Sign in for {partner.name.split(' ')[0]}</Button>}
-      </div>
       {err && <div className="mt-2"><Msg tone="error">{err}</Msg></div>}
     </Card>
   )
