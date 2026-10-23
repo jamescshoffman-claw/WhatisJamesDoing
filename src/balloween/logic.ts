@@ -52,12 +52,13 @@ export const NET_PREFIX: Record<Format, string> = { men: 'M', women: 'W' }
 export const NETS_PER_FORMAT = 4
 export const POOL_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F']
 
-/** Nets are lettered to match the pools: pool A plays on net A. Each format has its own A-D. */
-export function netsFor(_format: Format): string[] {
-  return POOL_LETTERS.slice(0, NETS_PER_FORMAT)
+/** Men's nets are A-D and women's are E-H so nobody walks to the wrong court. Pool A plays on the format's first net. */
+export const NET_LETTERS: Record<Format, string[]> = { men: ['A', 'B', 'C', 'D'], women: ['E', 'F', 'G', 'H'] }
+export function netsFor(format: Format): string[] {
+  return NET_LETTERS[format].slice(0, NETS_PER_FORMAT)
 }
 
-/** Halloween names for the pools. Net letters stay A-D so the signs on the nets are simple. */
+/** Halloween names for the pools. Pool letters are A-D in both formats; the nets they play on come from poolNet. */
 export const POOL_NAMES: Record<Format, Record<string, string>> = {
   men: { A: 'Pumpkin', B: 'Werewolf', C: 'Skeleton', D: 'Mummy' },
   women: { A: 'Witch', B: 'Vampire', C: 'Ghost', D: 'Zombie' },
@@ -140,8 +141,8 @@ export function assignPools(teams: Team[], rand: () => number = Math.random): Re
   return out
 }
 
-export function poolNet(_format: Format, pool: string): string {
-  return pool
+export function poolNet(format: Format, pool: string): string {
+  return netsFor(format)[POOL_LETTERS.indexOf(pool)] ?? pool
 }
 
 /** Round-robin pairings in an order that spreads each team's games out (circle method). */

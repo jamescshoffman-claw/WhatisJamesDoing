@@ -3,7 +3,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  MAX_POOL_CAP, MIN_POOL_CAP, applyPatches, assignPools, buildBracket, buildPoolMatches, champion, poolCapOf, poolsComplete, reconcile, rulesFor, seedTeams, teamName,
+  MAX_POOL_CAP, MIN_POOL_CAP, applyPatches, assignPools, buildBracket, buildPoolMatches, champion, poolCapOf, poolNet, poolsComplete, reconcile, rulesFor, seedTeams, teamName,
   winnerFromSets, type Format, type FormatState, type Match, type ParsedTeam, type Phase, type Team, type TKey,
 } from './logic'
 import { randomSet, sampleTeams } from './sample'
@@ -30,7 +30,9 @@ async function fetchAll(t: TKey): Promise<Data> {
     sb.from('bw_state').select('*').eq('t', t),
   ])
   throwIf(a.error || b.error || c.error)
-  return { teams: (a.data || []) as Team[], matches: (b.data || []) as Match[], states: (c.data || []) as FormatState[] }
+  // A pool game's net always follows its pool, so older rows saved with the pre-E-H women's letters still show the right net.
+  const matches = ((b.data || []) as Match[]).map(m => m.stage === 'pool' && m.pool ? { ...m, net: poolNet(m.format, m.pool) } : m)
+  return { teams: (a.data || []) as Team[], matches, states: (c.data || []) as FormatState[] }
 }
 
 export class Actions {
