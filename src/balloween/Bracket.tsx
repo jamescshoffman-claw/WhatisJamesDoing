@@ -2,9 +2,9 @@
 // Positions are computed from round/slot so connector lines can be drawn with plain SVG. Scrolls sideways on phones.
 import { useEffect, useRef } from 'react'
 import { bracketSize, roundLabel, setsSummary, type Format, type Match, type Team } from './logic'
-import { cx, nameOf } from './ui'
+import { cx, nameOf, teamById } from './ui'
 
-const W = 168, GAP = 36, BOX = 58, UNIT = 70, PAD = 12, LABEL = 22
+const W = 176, GAP = 36, BOX = 80, UNIT = 92, PAD = 12, LABEL = 22
 
 interface Box { m: Match; x: number; y: number }
 
@@ -98,12 +98,16 @@ function Row({ id, other, m, seed, teams }: { id: string | null; other: string |
   const won = m.winner && m.winner === id, lost = m.winner && m.winner !== id && id
   const bye = m.winner && m.sets.length === 0 && !other
   const isA = m.team_a === id
+  const team = teamById(teams, id)
   const setsWon = m.sets.filter(([a, b]) => (isA ? a > b : b > a)).length
   const score = !m.sets.length ? (bye ? 'bye' : '') : m.sets.length === 1 ? (isA ? m.sets[0][0] : m.sets[0][1]) : setsWon
   return (
-    <div className={cx('flex h-[28px] items-center gap-1 px-1.5', won && 'bg-[#22c55e]/15', lost && 'opacity-50')} title={m.sets.length ? setsSummary(m.sets, isA) : undefined}>
+    <div className={cx('flex h-[39px] items-center gap-1 px-1.5', won && 'bg-[#22c55e]/15', lost && 'opacity-50')} title={m.sets.length ? setsSummary(m.sets, isA) : undefined}>
       {seed ? <span className="w-4 shrink-0 text-[9px] font-bold text-white/40">{seed}</span> : <span className="w-4 shrink-0" />}
-      <span className={cx('min-w-0 flex-1 truncate', won ? 'font-black text-[#86efac]' : id ? 'font-semibold' : 'italic text-white/35')}>{id ? nameOf(teams, id) : (other && m.winner ? '—' : 'TBD')}</span>
+      <div className="min-w-0 flex-1">
+        <div className={cx('truncate', won ? 'font-black text-[#86efac]' : id ? 'font-semibold' : 'italic text-white/35')}>{id ? nameOf(teams, id) : (other && m.winner ? '—' : 'TBD')}</div>
+        {team && <div className="truncate text-[10px] text-white/55">{team.player1} &amp; {team.player2}</div>}
+      </div>
       <span className={cx('shrink-0 font-mono text-[11px]', won ? 'text-[#86efac]' : 'text-white/60')}>{score}</span>
     </div>
   )

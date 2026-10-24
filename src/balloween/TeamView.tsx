@@ -42,7 +42,7 @@ function SignInCard({ team, me, onSet }: { team: Team; me: string; onSet: (slot:
 }
 
 export default function TeamView() {
-  const { base, t, data } = useBw()
+  const { base, t, data, admin } = useBw()
   const me = loadMe(t)
   const [open, setOpen] = useState<Match | null>(null)
   const [, force] = useState(0)
@@ -129,7 +129,7 @@ export default function TeamView() {
         <div className="flex gap-2"><Pill tone={losses === 0 ? 'green' : 'orange'}>{losses === 0 ? 'Winners bracket' : 'Losers bracket'}</Pill><Pill>{losses} {losses === 1 ? 'loss' : 'losses'}</Pill></div>
         <div>
           <H sub="You're outlined in purple. Swipe to see every round.">The bracket</H>
-          <BracketDiagram matches={data.matches} teams={data.teams} format={team.format} me={team.id} />
+          <BracketDiagram matches={data.matches} teams={data.teams} format={team.format} me={team.id} onTap={admin ? m => setOpen(m) : undefined} />
         </div>
         {myPlayoff.length > 0 && <div><H>Your playoff games</H><div className="space-y-2">{myPlayoff.map(m => <MatchRow key={m.id} m={m} teams={data.teams} me={team.id} onTap={m.winner ? undefined : setOpen} />)}</div></div>}
         <details className="rounded-2xl border border-white/10 bg-white/5 p-3"><summary className="cursor-pointer font-bold">Pool results</summary>
@@ -144,7 +144,7 @@ export default function TeamView() {
       {header}
       <div className="mb-4">{signIn}</div>
       {body}
-      {open && <ScoreSheet match={open} teams={data.teams} onClose={() => setOpen(null)} onSave={sets => data.actions.saveScore(open, sets)} />}
+      {open && <ScoreSheet match={open} teams={data.teams} onClose={() => setOpen(null)} onSave={sets => data.actions.saveScore(open, sets)} onClear={() => data.actions.clearScore(open)} canClear={admin} />}
     </div>
   )
 }

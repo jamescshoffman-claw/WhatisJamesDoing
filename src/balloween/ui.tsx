@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  FORMAT_LABEL, bracketSize, champion, poolCapOf, poolName, rankPool, roundLabel, rulesFor, setsSummary, winnerFromSets,
+  FORMAT_LABEL, bracketSize, champion, poolCapOf, poolName, poolNet, rankPool, roundLabel, rulesFor, setsSummary, winnerFromSets,
   type Format, type Match, type Team, type TKey,
 } from './logic'
 import type { Tournament } from './store'
@@ -166,7 +166,7 @@ function RowInputs({ row, label, max, onChange }: { row: string[]; label: string
 }
 
 export function roundLabelFor(m: Match, teams: Team[]): string {
-  if (m.stage === 'pool') return `${poolName(m.format, m.pool)} · Net ${m.pool}`
+  if (m.stage === 'pool') return `${poolName(m.format, m.pool)} · Net ${m.pool ? poolNet(m.format, m.pool) : ''}`
   const n = teams.filter(t => t.format === m.format && t.seed).length || teams.filter(t => t.format === m.format).length
   return roundLabel(m, n)
 }
@@ -226,7 +226,7 @@ export function PoolTable({ pool, teams, matches, me }: { pool: string; teams: T
     <Card className="p-0 overflow-hidden">
       <table className="w-full text-sm">
         <thead><tr className="bg-white/5 text-left text-[11px] uppercase tracking-wider text-white/50">
-          <th className="px-3 py-2">{title} <span className="font-normal normal-case text-white/40">· Net {pool}</span></th><th className="px-2 py-2 text-center">W-L</th><th className="px-2 py-2 text-center">+/-</th><th className="px-3 py-2 text-center">Pts</th>
+          <th className="px-3 py-2">{title} <span className="font-normal normal-case text-white/40">· Net {teams[0] ? poolNet(teams[0].format, pool) : pool}</span></th><th className="px-2 py-2 text-center">W-L</th><th className="px-2 py-2 text-center">+/-</th><th className="px-3 py-2 text-center">Pts</th>
         </tr></thead>
         <tbody>
           {lines.map((l, i) => (
